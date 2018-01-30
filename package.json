@@ -1,0 +1,37 @@
+{
+    "name": "slackbot",
+    "version": "1.0.0",
+    "description": "Slack bot for Lullabot",
+    "main": "index.js",
+    "author": {
+        "name": "Lullabot",
+        "email": "developers@lullabot.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/TugboatQA/tugboat-slackbot.git"
+    },
+    "license": "MIT",
+    "scripts": {
+        "test": "eslint --max-warnings=0 ."
+    },
+    "dependencies": {
+        "mongoose": "^5.0.2",
+        "slackbots": "^1.1.0"
+    },
+    "devDependencies": {
+        "eslint": "^4.16.0",
+        "eslint-config-airbnb-base": "^12.1.0",
+        "eslint-config-prettier": "^2.9.0",
+        "eslint-plugin-import": "^2.8.0",
+        "eslint-plugin-json": "^1.2.0",
+        "eslint-plugin-prettier": "^2.5.0",
+        "prettier": "^1.10.2"
+    },
+    "prettier": {
+        "singleQuote": true,
+        "tabWidth": 4,
+        "trailingComma": "es5",
+        "printWidth": 120
+    }
+}
