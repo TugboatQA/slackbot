@@ -1,13 +1,13 @@
-const mongoose = require('mongoose');
+module.exports = controller => {
+    controller.hears(['hi'], ['direct_message', 'direct_mention', 'mention'], async (bot, message) => {
+        const team = await controller.storage.teams.get(message.team);
 
-const schema = new mongoose.Schema({
-    key: String,
-    karma: Number,
-});
+        team.karma = team.karma || {};
+        team.karma[message.text] = team.karma[message.text] || 0;
+        team.karma[message.text] += 1;
 
-const Karma = mongoose.model('Karma', schema);
+        controller.storage.teams.save(team);
 
-module.exports = function(slackbot, config) {
-    //
-    slackbot.on('start', () => console.log('karma: bot started'));
+        bot.reply(message, `${message.text} has karma of ${team.karma[message.text]}`);
+    });
 };

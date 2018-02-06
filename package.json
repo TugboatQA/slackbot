@@ -16,8 +16,8 @@
         "test": "eslint --max-warnings=0 ."
     },
     "dependencies": {
-        "mongoose": "^5.0.2",
-        "slackbots": "^1.1.0"
+        "botkit": "^0.6.9",
+        "botkit-storage-mongo": "^1.0.7"
     },
     "devDependencies": {
         "eslint": "^4.16.0",

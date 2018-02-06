@@ -1,37 +1,37 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
-const mongoose = require('mongoose');
 const path = require('path');
 
-const Slackbot = require('slackbots');
+const Botkit = require('botkit');
+const mongoStorage = require('botkit-storage-mongo');
 
-let local = {};
+let config = {};
 
 try {
     // eslint-disable-next-line global-require,import/no-unresolved
-    local = require('./config.js');
+    config = require('./config.js');
 } catch (err) {
     // Can't read config file, or it does not exist. Use defaults
 }
 
-const defaults = {
-    name: 'lullabot',
-    mongodb: 'mongodb://localhost/lullabot',
-};
-
-// Load the config variable
-const config = Object.assign({}, defaults, local);
-
-// Connect to MongoDB
-mongoose.connect(config.mongodb);
-
 // Create a Slackbot
-const slackbot = new Slackbot({ name: config.name, token: config.token });
+const controller = Botkit.slackbot({
+    storage: mongoStorage({ mongoUri: 'mongodb://localhost/lullabot' }),
+});
+
+// Start the slackbot
+controller.spawn({ token: config.token || process.env.token }).startRTM(err => {
+    if (err) {
+        // eslint-disable-next-line no-console
+        console.error(err);
+        process.exit(1);
+    }
+});
 
 // Load the plugins
 const pluginpath = path.join(__dirname, 'plugins');
 const plugins = fs.readdirSync(pluginpath);
 
 // eslint-disable-next-line global-require,import/no-dynamic-require
-plugins.forEach(plugin => require(path.join(pluginpath, plugin))(slackbot, config));
+plugins.forEach(plugin => require(path.join(pluginpath, plugin))(controller, config));
