@@ -34,4 +34,4 @@ const pluginpath = path.join(__dirname, 'plugins');
 const plugins = fs.readdirSync(pluginpath);
 
 // eslint-disable-next-line global-require,import/no-dynamic-require
-plugins.forEach(plugin => require(path.join(pluginpath, plugin))(controller, config));
+plugins.forEach(plugin => require(path.join(pluginpath, plugin))(controller));
