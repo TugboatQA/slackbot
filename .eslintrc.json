@@ -10,6 +10,10 @@
     "plugins": ["json", "prettier"],
     "extends": ["airbnb-base", "prettier", "prettier/react"],
     "rules": {
+        "no-use-before-define": ["off", { "functions": true, "classes": true, "variables": true }],
+        "object-shorthand": ["error", "consistent"],
+        "one-var": ["error", { "initialized": "never" }],
+
         "prettier/prettier": [
             "error",
             {
