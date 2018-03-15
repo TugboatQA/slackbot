@@ -10,7 +10,7 @@ module.exports = {
     token: '',
 
     /**
-     * Location of the mongodb database
+     * Enable botkit debugging, default: false
      */
-    mongodb: 'mongodb://localhost/lullabot',
+    // debug: true,
 };
