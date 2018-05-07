@@ -16,9 +16,7 @@
         "test": "eslint --max-warnings=0 ."
     },
     "dependencies": {
-        "botkit": "^0.6.9",
-        "botkit-promise-storage": "^1.1.0",
-        "botkit-storage-mongo": "^1.0.7"
+        "botkit": "^0.6.9"
     },
     "devDependencies": {
         "eslint": "^4.16.0",

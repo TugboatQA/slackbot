@@ -596,19 +596,6 @@ botbuilder@^3.8.4:
     sprintf-js "^1.0.3"
     url-join "^1.1.0"
 
-botkit-promise-storage@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/botkit-promise-storage/-/botkit-promise-storage-1.1.0.tgz#f99a7234e6f2809110d9541ad43a39ea6b6574f4"
-  dependencies:
-    lodash "^4.6.1"
-    q "^1.4.1"
-
-botkit-storage-mongo@^1.0.7:
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/botkit-storage-mongo/-/botkit-storage-mongo-1.0.7.tgz#b91320c9d8b7d5e0ac9c9fa8bc624e1255ab3436"
-  dependencies:
-    monk "^6.0.1"
-
 botkit-studio-sdk@^1.0.8:
   version "1.0.8"
   resolved "https://registry.yarnpkg.com/botkit-studio-sdk/-/botkit-studio-sdk-1.0.8.tgz#7e8707bfb8462813c08155d3a88a5a490845ccf5"
@@ -657,17 +644,9 @@ browser-request@^0.3.3:
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/browser-request/-/browser-request-0.3.3.tgz#9ece5b5aca89a29932242e18bf933def9876cc17"
 
-bson@~1.0.4:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/bson/-/bson-1.0.6.tgz#444db59ddd4c24f0cb063aabdc5c8c7b0ceca912"
-
 buffer-equal-constant-time@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/buffer-equal-constant-time/-/buffer-equal-constant-time-1.0.1.tgz#f8e71132f7ffe6e01a5c9697a4c6f3e48d5cc819"
-
-buffer-shims@~1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/buffer-shims/-/buffer-shims-1.0.0.tgz#9978ce317388c649ad8793028c3477ef044a8b51"
 
 builtin-modules@^1.0.0, builtin-modules@^1.1.1:
   version "1.1.1"
@@ -931,12 +910,6 @@ date-now@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
 
-debug@*, debug@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/debug/-/debug-3.1.0.tgz#5bb5a0672628b64149566ba16819e61518c67261"
-  dependencies:
-    ms "2.0.0"
-
 debug@2.3.3:
   version "2.3.3"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.3.3.tgz#40c453e67e6e13c901ddec317af8986cda9eff8c"
@@ -952,6 +925,12 @@ debug@2.6.8:
 debug@2.6.9, debug@^2.2.0, debug@^2.6.8, debug@^2.6.9:
   version "2.6.9"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.9.tgz#5d128515df134ff327e90a4c93f4e077a536341f"
+  dependencies:
+    ms "2.0.0"
+
+debug@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-3.1.0.tgz#5bb5a0672628b64149566ba16819e61518c67261"
   dependencies:
     ms "2.0.0"
 
@@ -1089,10 +1068,6 @@ error-ex@^1.2.0:
   resolved "https://registry.yarnpkg.com/error-ex/-/error-ex-1.3.1.tgz#f855a86ce61adc4e8621c3cda21e7a7612c3a8dc"
   dependencies:
     is-arrayish "^0.2.1"
-
-es6-promise@3.2.1:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/es6-promise/-/es6-promise-3.2.1.tgz#ec56233868032909207170c39448e24449dd1fc4"
 
 es6-promise@^4.0.3:
   version "4.2.4"
@@ -2165,59 +2140,6 @@ moment@2.x.x, moment@^2.10.3:
   version "2.21.0"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.21.0.tgz#2a114b51d2a6ec9e6d83cf803f838a878d8a023a"
 
-mongodb-core@2.1.19:
-  version "2.1.19"
-  resolved "https://registry.yarnpkg.com/mongodb-core/-/mongodb-core-2.1.19.tgz#00fbd5e5a3573763b9171cfd844e60a8f2a3a18b"
-  dependencies:
-    bson "~1.0.4"
-    require_optional "~1.0.0"
-
-mongodb@^2.1.18:
-  version "2.2.35"
-  resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-2.2.35.tgz#cd1b5af8a9463e3f9a787fa5b3d05565579730f9"
-  dependencies:
-    es6-promise "3.2.1"
-    mongodb-core "2.1.19"
-    readable-stream "2.2.7"
-
-monk-middleware-cast-ids@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/monk-middleware-cast-ids/-/monk-middleware-cast-ids-0.2.1.tgz#40c40e5a6cb33ccedc289220943275ee8861c529"
-
-monk-middleware-fields@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/monk-middleware-fields/-/monk-middleware-fields-0.2.0.tgz#ff637af35f5948879ccb2be15a91360911bea6c1"
-
-monk-middleware-handle-callback@^0.2.0:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/monk-middleware-handle-callback/-/monk-middleware-handle-callback-0.2.2.tgz#47de6cc1248726c72a2be0c81bc4e68310c32146"
-
-monk-middleware-options@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/monk-middleware-options/-/monk-middleware-options-0.2.1.tgz#58dae1c518d46636ebdff506fadfc773bb442886"
-
-monk-middleware-query@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/monk-middleware-query/-/monk-middleware-query-0.2.0.tgz#a926c677d4a5620c62151b0a56d0c0c151675874"
-
-monk-middleware-wait-for-connection@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/monk-middleware-wait-for-connection/-/monk-middleware-wait-for-connection-0.2.0.tgz#312958d30e588b57d09754dd7c97b4843316835a"
-
-monk@^6.0.1:
-  version "6.0.5"
-  resolved "https://registry.yarnpkg.com/monk/-/monk-6.0.5.tgz#a69be84e70ba4aa771b9619f7f73de965a50610a"
-  dependencies:
-    debug "*"
-    mongodb "^2.1.18"
-    monk-middleware-cast-ids "^0.2.1"
-    monk-middleware-fields "^0.2.0"
-    monk-middleware-handle-callback "^0.2.0"
-    monk-middleware-options "^0.2.1"
-    monk-middleware-query "^0.2.0"
-    monk-middleware-wait-for-connection "^0.2.0"
-    object-assign "^4.1.1"
-
 ms@0.7.2:
   version "0.7.2"
   resolved "https://registry.yarnpkg.com/ms/-/ms-0.7.2.tgz#ae25cf2512b3885a1d95d7f037868d8431124765"
@@ -2333,7 +2255,7 @@ oauth-sign@~0.8.1, oauth-sign@~0.8.2:
   version "0.8.2"
   resolved "https://registry.yarnpkg.com/oauth-sign/-/oauth-sign-0.8.2.tgz#46a6ab7f0aead8deae9ec0565780b7d4efeb9d43"
 
-object-assign@^4.0.1, object-assign@^4.1.0, object-assign@^4.1.1:
+object-assign@^4.0.1, object-assign@^4.1.0:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/object-assign/-/object-assign-4.1.1.tgz#2109adc7965887cfc05cbbd442cac8bfbb360863"
 
@@ -2548,10 +2470,6 @@ q@2.0.x:
     pop-iterate "^1.0.1"
     weak-map "^1.0.5"
 
-q@^1.4.1:
-  version "1.5.1"
-  resolved "https://registry.yarnpkg.com/q/-/q-1.5.1.tgz#7e32f75b41381291d04611f1bf14109ac00651d7"
-
 qbox@0.1.x:
   version "0.1.7"
   resolved "https://registry.yarnpkg.com/qbox/-/qbox-0.1.7.tgz#e80f0dc5d09f869d8882168c3f66ac8dd2840f02"
@@ -2604,18 +2522,6 @@ readable-stream@1.1:
     inherits "~2.0.1"
     isarray "0.0.1"
     string_decoder "~0.10.x"
-
-readable-stream@2.2.7:
-  version "2.2.7"
-  resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.2.7.tgz#07057acbe2467b22042d36f98c5ad507054e95b1"
-  dependencies:
-    buffer-shims "~1.0.0"
-    core-util-is "~1.0.0"
-    inherits "~2.0.1"
-    isarray "~1.0.0"
-    process-nextick-args "~1.0.6"
-    string_decoder "~1.0.0"
-    util-deprecate "~1.0.1"
 
 "readable-stream@>=1.0.33-1 <1.1.0-0":
   version "1.0.34"
@@ -2782,20 +2688,9 @@ require-uncached@^1.0.3:
     caller-path "^0.1.0"
     resolve-from "^1.0.0"
 
-require_optional@~1.0.0:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/require_optional/-/require_optional-1.0.1.tgz#4cf35a4247f64ca3df8c2ef208cc494b1ca8fc2e"
-  dependencies:
-    resolve-from "^2.0.0"
-    semver "^5.1.0"
-
 resolve-from@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/resolve-from/-/resolve-from-1.0.1.tgz#26cbfe935d1aeeeabb29bc3fe5aeb01e93d44226"
-
-resolve-from@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/resolve-from/-/resolve-from-2.0.0.tgz#9480ab20e94ffa1d9e80a804c7ea147611966b57"
 
 resolve@^1.5.0:
   version "1.5.0"
@@ -2891,7 +2786,7 @@ selectn@^0.9.6:
   version "0.9.6"
   resolved "https://registry.yarnpkg.com/selectn/-/selectn-0.9.6.tgz#bd873a556d18f96d8515fc91503ec6ff398ff9a2"
 
-"semver@2 || 3 || 4 || 5", semver@^5.1.0, semver@^5.3.0:
+"semver@2 || 3 || 4 || 5", semver@^5.3.0:
   version "5.5.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.5.0.tgz#dc4bbc7a6ca9d916dee5d43516f0092b58f7b8ab"
 
@@ -3054,7 +2949,7 @@ string_decoder@~0.10.x:
   version "0.10.31"
   resolved "https://registry.yarnpkg.com/string_decoder/-/string_decoder-0.10.31.tgz#62e203bc41766c6c28c9fc84301dab1c5310fa94"
 
-string_decoder@~1.0.0, string_decoder@~1.0.3:
+string_decoder@~1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/string_decoder/-/string_decoder-1.0.3.tgz#0fc67d7c141825de94282dd536bec6b9bce860ab"
   dependencies:
