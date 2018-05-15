@@ -26,10 +26,10 @@ controller.spawn({ token: config.token }).startRTM(err => {
     }
 });
 
-controller.on('rtm_open', bot => importKarma(bot));
+controller.on('rtm_open', bot => importFactoids(bot));
 
-async function importKarma(bot) {
-    const karma = {};
+async function importFactoids(bot) {
+    const factoids = [];
     const users = await util.promisify(bot.api.users.list)({ limit: 1000 });
 
     const findUser = string =>
@@ -41,19 +41,33 @@ async function importKarma(bot) {
     // Open the CSV file and loop through all the rows
     fs
         .createReadStream(csvfile)
-        .pipe(csv({ headers: ['key', 'value'], escape: '\\' }))
-        .on('data', row => {
-            karma[row.key] = parseInt(row.value, 10);
-        })
+        .pipe(csv({ headers: ['key', 'be', 'value'], escape: '\\' }))
+        .on('data', row => factoids.push(row))
         .on('end', async () => {
             try {
-                const result = { id: `${team}_karma`, data: {} };
+                const result = { id: `${team}_factoids`, data: {} };
 
-                Object.keys(karma).forEach(key => {
-                    const user = findUser(key);
-                    const index = user ? user.id : key.toLowerCase();
-                    const value = result.data[index] || 0;
-                    result.data[index] = value + karma[key];
+                factoids.forEach(factoid => {
+                    // Filter out the "tell X about Y" facts
+                    if (/^tell /.test(factoid.key)) {
+                        return;
+                    }
+
+                    const user = findUser(factoid.key);
+                    const index = user ? user.id : factoid.key.toLowerCase();
+                    const reply = /^<reply>(.*)/.exec(factoid.value);
+                    const value = reply ? reply[1] : factoid.value;
+
+                    if (result.data[index]) {
+                        result.data[index].value.push(value);
+                    } else {
+                        result.data[index] = {
+                            key: user ? `<@${user.id}>` : factoid.key.toLowerCase(),
+                            be: factoid.be,
+                            reply: !!reply,
+                            value: [value],
+                        };
+                    }
                 });
 
                 console.log(result);
