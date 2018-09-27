@@ -13,6 +13,7 @@
     },
     "license": "MIT",
     "scripts": {
+        "start": "node ./index.js",
         "test": "eslint --max-warnings=0 ."
     },
     "dependencies": {
