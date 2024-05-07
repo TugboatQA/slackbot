@@ -1,4 +1,4 @@
-# Lullabot Slack Bot
+# Tugboat Slack Bot
 
 ## Run a copy of the bot
 
