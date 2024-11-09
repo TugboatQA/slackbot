@@ -73,6 +73,11 @@ module.exports = async (app) => {
         return;
     }
 
+    // Register plugin patterns
+    app.registerPlugin('ooo', [
+        /(0|O){3}.*\?$/i  // Matches OOO queries
+    ]);
+
     const bamboo = new BambooHR({
         apikey: process.env.BAMBOO_TOKEN,
         subdomain: process.env.BAMBOO_SUBDOMAIN

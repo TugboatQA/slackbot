@@ -10,6 +10,7 @@
     "dependencies": {
         "@slack/bolt": "^3.17.0",
         "datejs": "^1.0.0-rc3",
-        "dotenv": "^7.0.0"
+        "dotenv": "^7.0.0",
+        "openai": "^4.24.1"
     }
 }

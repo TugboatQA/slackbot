@@ -38,6 +38,14 @@ function formatUptime(uptime) {
 }
 
 module.exports = async (app) => {
+    // Register plugin patterns
+    app.registerPlugin('uptime', [
+        /^uptime$/i,
+        /^identify yourself$/i,
+        /^who are you$/i,
+        /^what is your name$/i
+    ]);
+
     // Handle direct messages and mentions for uptime queries
     const patterns = ['uptime', 'identify yourself', 'who are you', 'what is your name'];
     const patternRegex = new RegExp(`^(${patterns.join('|')})$`, 'i');
@@ -59,7 +67,7 @@ module.exports = async (app) => {
     app.event('app_mention', async ({ event, client, say }) => {
         const text = event.text.replace(/<@[^>]+>\s*/, '').trim();
         
-        if (patterns.some(pattern => text.toLowerCase() === pattern.toLowerCase())) {
+        if (patternRegex.test(text)) {
             const botInfo = await client.auth.test();
             const uptime = formatUptime(process.uptime());
             
