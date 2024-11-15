@@ -56,6 +56,40 @@ module.exports = async (app) => {
         /^!factoid:/i,  // All factoid commands start with this
     ]);
 
+    // Add new list command
+    app.message(/^!factoid:\s*list$/i, async ({ message, say }) => {
+        const team = message.team || 'default';
+        
+        try {
+            const factoids = await loadFacts(team);
+            const keys = Object.keys(factoids.data);
+            
+            if (keys.length === 0) {
+                await say({
+                    text: "No factoids stored yet.",
+                    ...(message.thread_ts && { thread_ts: message.thread_ts })
+                });
+                return;
+            }
+
+            const sortedKeys = keys.sort().map(key => {
+                // If key is a user ID, keep the <@ID> format
+                return factoids.data[key].key;
+            });
+
+            await say({
+                text: `Available factoids: ${sortedKeys.join(', ')}`,
+                ...(message.thread_ts && { thread_ts: message.thread_ts })
+            });
+        } catch (error) {
+            console.error('Error listing factoids:', error);
+            await say({
+                text: "Sorry, there was an error listing the factoids.",
+                thread_ts: message.thread_ts
+            });
+        }
+    });
+
     // Query a factoid
     app.message(/^!factoid:\s*([^.,!?\s]+)\?$/, async ({ message, context, client, say }) => {
         if (!context?.matches?.[1]) return;
