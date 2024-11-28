@@ -6,6 +6,25 @@ This provides a modular architecture for adding new features to the bot.
 
 ## Plugins
 
+### Help
+
+Access documentation and command information for all bot features.
+
+Features:
+- Lists all available plugins and their commands
+- Provides detailed help for specific plugins
+- Responds in threads for better organization
+- Supports multiple query formats
+
+Examples:
+```
+@bot help                 # Show all commands
+@bot commands             # Show all commands
+@bot plugins              # List available plugins
+@bot help factoids        # Show factoids help
+@bot help karma           # Show karma help
+```
+
 ### Factoids
 
 - Store and retrieve custom responses
