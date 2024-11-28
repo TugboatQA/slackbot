@@ -34,19 +34,6 @@ Examples:
 - Take karma: `@user--` or `thing--`
 - Query karma: `karma @user` or `karma thing`
 
-### Out of Office (OOO)
-
-- Integration with BambooHR
-- Check who's out of office on any given day
-- Supports date queries for future dates
-- Shows vacation time and holidays
-
-Examples:
-
-- Today: `ooo?`
-- Future date: `ooo next Monday?`
-- Specific date: `ooo July 4?`
-
 ### Greetings
 
 - Responds to various greeting patterns
@@ -89,8 +76,6 @@ Examples:
    - `CLIENT_SIGNING_SECRET`: Found in "Basic Information" > "App Credentials"
    - `BOT_TOKEN`: Found in "OAuth & Permissions" > "Bot User OAuth Token"
    - `SLACK_APP_TOKEN`: Generate in "Basic Information" > "App-Level Tokens" (needs `connections:write`)
-   - `BAMBOO_TOKEN`: Your BambooHR API key (optional)
-   - `BAMBOO_SUBDOMAIN`: Your BambooHR subdomain (optional)
 
 4. Install dependencies:
 

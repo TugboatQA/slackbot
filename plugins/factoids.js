@@ -52,11 +52,6 @@ function factString(fact) {
 }
 
 module.exports = async (app) => {
-    // Register plugin patterns
-    app.registerPlugin('factoids', [
-        /^!factoid:/i,  // All factoid commands start with this
-    ]);
-
     // Add new list command
     app.message(/^!factoid:\s*list$/i, async ({ message, say }) => {
         const team = message.team || 'default';
