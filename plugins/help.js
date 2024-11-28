@@ -18,6 +18,14 @@
  */
 
 const helpText = {
+    botsnack: {
+        title: 'Botsnack',
+        description: 'Give the bot a treat!',
+        commands: [
+            { pattern: 'botsnack', description: 'Give the bot a snack' },
+            { pattern: '@bot botsnack', description: 'Give the bot a snack (with mention)' }
+        ]
+    },
     factoids: {
         title: 'Factoids',
         description: 'Store and retrieve custom responses',

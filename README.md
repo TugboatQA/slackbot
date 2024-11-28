@@ -99,6 +99,21 @@ Examples:
 - `who are you`
 - `what is your name`
 
+### Botsnack
+
+Give the bot a treat and receive a message of gratitude!
+
+Features:
+- Responds to "botsnack" with random thank you messages
+- Supports both direct messages and mentions
+- Includes emoji reactions
+
+Examples:
+```
+botsnack              # Give the bot a snack
+@bot botsnack         # Give the bot a snack (with mention)
+```
+
 ## Setup
 
 1. Create a Slack App at api.slack.com/apps
