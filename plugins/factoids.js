@@ -1,3 +1,23 @@
+/**
+ * @file
+ * 
+ * Store and retrieve custom responses with support for direct responses and templated replies.
+ * 
+ * Features:
+ * - Store and retrieve custom responses
+ * - Support for direct responses and templated replies
+ * - Update or append to existing factoids
+ * - Interactive buttons for managing factoid updates
+ * - Delete factoids with the 'forget' command
+ * 
+ * Examples:
+ *     !factoid: X?          (Query a factoid)
+ *     @Lullabot X is Y      (Set a factoid)
+ *     @Lullabot X is <reply>Y  (Set with reply)
+ *     @Lullabot forget X    (Delete a factoid)
+ *     !factoid: list        (List all factoids)
+ */
+
 const fs = require('fs').promises;
 const path = require('path');
 

@@ -1,16 +1,28 @@
 /**
  * @file
  *
- * Handle giving/taking karma.
+ * Handle giving/taking karma points for users and things.
  *
  * Karma is stored team side, so any channel that the bot is in for this team
  * will use the same set of karma data.
+ * 
+ * Features:
+ * - Give or take karma points using ++ or --
+ * - Query karma levels for users or items
+ * - Prevents self-karma manipulation
+ * - Supports user mentions and plain text
+ * - Persistent storage per team
+ * - Thread-aware responses
  *
- *  Examples:
- *      @eojthebrave++
- *      cats++
- *      tacos--
- *      :taylor:++
+ * Examples:
+ *     @user++                    (Give karma to user)
+ *     @user--                    (Take karma from user)
+ *     cats++                     (Give karma to thing)
+ *     tacos--                    (Take karma from thing)
+ *     :emoji:++                  (Give karma to emoji)
+ *     karma @user               (Query user's karma)
+ *     karma cats                (Query thing's karma)
+ *     @bot karma @user          (Query via mention)
  */
 
 const fs = require('fs').promises;

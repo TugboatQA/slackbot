@@ -1,3 +1,21 @@
+/**
+ * @file
+ * 
+ * Responds to various greeting patterns with reactions or text responses.
+ * 
+ * Features:
+ * - Responds to various greeting patterns
+ * - Adds wave reactions to greetings
+ * - Supports both direct messages and mentions
+ * - Fallback to text responses if reactions fail
+ * 
+ * Examples:
+ *     hello!
+ *     hey!
+ *     hi!
+ *     :wave:
+ */
+
 module.exports = async (app) => {
     // Define patterns for greetings
     const patterns = ['^hello\\!?$', '^hey\\!?$', '^hi\\!?$', '^:wave:$'];

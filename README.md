@@ -23,16 +23,35 @@ Examples:
 
 ### Karma System
 
+Track and manage karma points for users and things in your Slack workspace.
+
+Features:
 - Give or take karma points using ++ or --
 - Query karma levels for users or items
 - Prevents self-karma manipulation
 - Supports user mentions and plain text
+- Persistent storage per team
+- Thread-aware responses
 
 Examples:
 
-- Give karma: `@user++` or `thing++`
-- Take karma: `@user--` or `thing--`
-- Query karma: `karma @user` or `karma thing`
+**Give/Take Karma:**
+```
+@user++                    # Give karma to user
+@user--                    # Take karma from user
+cats++                     # Give karma to thing
+tacos--                    # Take karma from thing
+:emoji:++                  # Give karma to emoji
+```
+
+**Query Karma:**
+```
+karma @user               # Query user's karma
+karma cats               # Query thing's karma
+@bot karma @user         # Query via mention
+```
+
+Note: Users cannot give or take karma from themselves.
 
 ### Greetings
 

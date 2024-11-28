@@ -1,3 +1,20 @@
+/**
+ * @file
+ * 
+ * Reports bot uptime statistics and identification information.
+ * 
+ * Features:
+ * - Reports bot uptime statistics
+ * - Shows bot identification information
+ * - Responds to various identity queries
+ * 
+ * Examples:
+ *     uptime
+ *     identify yourself
+ *     who are you
+ *     what is your name
+ */
+
 const os = require('os');
 
 // Cache the hostname
