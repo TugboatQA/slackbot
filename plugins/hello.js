@@ -3,14 +3,6 @@ module.exports = async (app) => {
     const patterns = ['^hello\\!?$', '^hey\\!?$', '^hi\\!?$', '^:wave:$'];
     const greetingRegex = new RegExp(`(${patterns.join('|')})`, 'i');
 
-    // Register plugin patterns
-    app.registerPlugin('hello', [
-        /^hello\!?$/i,
-        /^hey\!?$/i,
-        /^hi\!?$/i,
-        /^:wave:$/
-    ]);
-
     // Helper function to get user info
     async function getUser(client, userId) {
         try {

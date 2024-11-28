@@ -20,6 +20,7 @@ async function saveFacts(team, factoids) {
     await fs.writeFile(getStoragePath(team), JSON.stringify(factoids, null, 2));
 }
 
+// Helper function to get user info
 async function getUser(client, text) {
     const userMatch = text.match(/<@([UW][A-Z0-9]+)>/);
     if (userMatch) {
@@ -94,71 +95,74 @@ module.exports = async (app) => {
     app.message(/^!factoid:\s*([^.,!?\s]+)\?$/, async ({ message, context, client, say }) => {
         if (!context?.matches?.[1]) return;
 
-        const key = context.matches[1].trim().toLowerCase();
+        const index = context.matches[1].trim();
         const team = message.team || 'default';
         
-        try {
-            const factoids = await loadFacts(team);
-            const user = await getUser(client, key);
-            
-            let fact = null;
-            if (user) {
-                fact = factoids.data[user.id] || null;
-                if (fact) fact.index = user.id;
-            } else {
-                fact = factoids.data[key] || null;
-                if (fact) fact.index = key;
-            }
+        const factoids = await loadFacts(team);
+        const user = await getUser(client, index);
+        
+        let fact = null;
+        if (user) {
+            fact = factoids.data[user.id] || null;
+            if (fact) fact.index = user.id;
+        } else {
+            fact = factoids.data[index.toLowerCase()] || null;
+            if (fact) fact.index = index.toLowerCase();
+        }
 
-            if (fact) {
-                await say({
-                    text: factString(fact),
-                    ...(message.thread_ts && { thread_ts: message.thread_ts })
-                });
-            } else {
-                await say({
-                    text: `No factoid found for "${key}"`,
-                    ...(message.thread_ts && { thread_ts: message.thread_ts })
-                });
-            }
-        } catch (error) {
-            console.error('Error retrieving factoid:', error);
+        if (fact) {
             await say({
-                text: "Sorry, there was an error retrieving the factoid.",
-                thread_ts: message.thread_ts
+                text: factString(fact),
+                ...(message.thread_ts && { thread_ts: message.thread_ts })
             });
         }
     });
 
-    // Set or update factoid
-    app.message(/^!factoid:\s*(.+?)\s+(is|are)\s+(<reply>)?\s*(.+)$/i, async ({ message, context, client, say }) => {
-        if (!context?.matches) return;
+    // Set factoid - only through direct mentions
+    app.event('app_mention', async ({ event, client, say }) => {
+        // Remove the bot mention and any leading/trailing whitespace
+        const text = event.text.replace(/<@[^>]+>\s*/, '').trim();
+        
+        // Match "X is Y" pattern
+        const setMatches = text.match(/^(.+?)\s(is|are)\s(<reply>)?(.+)$/);
+        if (setMatches) {
+            const team = event.team || 'default';
+            const index = setMatches[1]?.trim();
+            
+            if (!index) return;
 
-        const [, key, be, isReply, value] = context.matches;
-        const team = message.team || 'default';
+            const user = await getUser(client, index);
 
-        try {
-            const user = await getUser(client, key);
             const fact = {
-                index: user ? user.id : key.toLowerCase(),
-                key: user ? `<@${user.id}>` : key.toLowerCase(),
-                be: be.trim(),
-                reply: !!isReply,
-                value: [value.trim()]
+                index: user ? user.id : index.toLowerCase(),
+                key: user ? `<@${user.id}>` : index.toLowerCase(),
+                be: setMatches[2]?.trim() || 'is',
+                reply: !!setMatches[3],
+                value: [setMatches[4]?.trim() || '']
             };
 
             const factoids = await loadFacts(team);
             const existing = factoids.data[fact.index];
 
             if (!existing) {
-                factoids.data[fact.index] = fact;
-                await saveFacts(team, factoids);
-                await say({
-                    text: 'Factoid saved!',
-                    thread_ts: message.thread_ts
-                });
+                try {
+                    factoids.data[fact.index] = fact;
+                    await saveFacts(team, factoids);
+                    await say({ 
+                        text: 'Got it!',
+                        ...(event.thread_ts && { thread_ts: event.thread_ts })
+                    });
+                } catch (err) {
+                    await say({ 
+                        text: `There was a problem saving the factoid: ${err}`,
+                        ...(event.thread_ts && { thread_ts: event.thread_ts })
+                    });
+                }
             } else {
-                // Handle update with buttons
+                // Create a unique action_id for this update
+                const actionId = `factoid_update_${Date.now()}`;
+                
+                // Start a thread for confirmation with buttons
                 await say({
                     blocks: [
                         {
@@ -180,7 +184,7 @@ module.exports = async (app) => {
                                         emoji: true
                                     },
                                     value: "update",
-                                    action_id: `factoid_update_${Date.now()}`
+                                    action_id: `${actionId}_update`
                                 },
                                 {
                                     type: "button",
@@ -190,7 +194,7 @@ module.exports = async (app) => {
                                         emoji: true
                                     },
                                     value: "append",
-                                    action_id: `factoid_append_${Date.now()}`
+                                    action_id: `${actionId}_append`
                                 },
                                 {
                                     type: "button",
@@ -201,110 +205,76 @@ module.exports = async (app) => {
                                     },
                                     value: "cancel",
                                     style: "danger",
-                                    action_id: `factoid_cancel_${Date.now()}`
+                                    action_id: `${actionId}_cancel`
                                 }
                             ]
                         }
                     ],
                     text: `I already have a factoid for "${existing.key}". What would you like to do?`,
-                    thread_ts: message.thread_ts
+                    thread_ts: event.ts
+                });
+
+                // Handle button actions
+                app.action(new RegExp(`${actionId}_(update|append|cancel)`), async ({ action, ack, respond }) => {
+                    await ack();
+                    
+                    const choice = action.value;
+
+                    try {
+                        if (choice === 'update') {
+                            factoids.data[fact.index] = fact;
+                            await saveFacts(team, factoids);
+                            await respond({
+                                text: `✅ Updated! New factoid is:\n"${factString(fact)}"`,
+                                replace_original: true
+                            });
+                        } else if (choice === 'append') {
+                            factoids.data[fact.index].value = factoids.data[fact.index].value.concat(fact.value);
+                            await saveFacts(team, factoids);
+                            await respond({
+                                text: `✅ Appended! Updated factoid is now:\n"${factString(factoids.data[fact.index])}"`,
+                                replace_original: true
+                            });
+                        } else {
+                            await respond({
+                                text: '❌ Cancelled - keeping the existing factoid.',
+                                replace_original: true
+                            });
+                        }
+                    } catch (err) {
+                        await respond({
+                            text: `Error updating factoid: ${err}`,
+                            replace_original: false
+                        });
+                    }
                 });
             }
-        } catch (error) {
-            console.error('Error saving factoid:', error);
-            await say({
-                text: "Sorry, there was an error saving the factoid.",
-                thread_ts: message.thread_ts
-            });
+            return;
         }
-    });
 
-    // Delete factoid
-    app.message(/^!factoid:\s*forget\s+(.+)$/i, async ({ message, context, client, say }) => {
-        if (!context?.matches?.[1]) return;
-
-        const key = context.matches[1].trim();
-        const team = message.team || 'default';
-
-        try {
+        // Match "forget X" pattern
+        const forgetMatches = text.match(/^forget\s(.*?)$/);
+        if (forgetMatches) {
+            const team = event.team || 'default';
+            const index = forgetMatches[1].trim();
             const factoids = await loadFacts(team);
-            const user = await getUser(client, key);
-            const factIndex = user ? user.id : key.toLowerCase();
+            
+            const user = await getUser(client, index);
+            const factIndex = user ? user.id : index.toLowerCase();
             
             if (factoids.data[factIndex]) {
                 delete factoids.data[factIndex];
                 await saveFacts(team, factoids);
                 await say({
-                    text: `I've forgotten about "${key}"`,
-                    thread_ts: message.thread_ts
+                    text: `I've forgotten about "${index}"`,
+                    ...(event.thread_ts && { thread_ts: event.thread_ts })
                 });
             } else {
                 await say({
-                    text: `I don't have any factoid for "${key}"`,
-                    thread_ts: message.thread_ts
+                    text: `I don't have any factoid for "${index}"`,
+                    ...(event.thread_ts && { thread_ts: event.thread_ts })
                 });
             }
-        } catch (error) {
-            console.error('Error deleting factoid:', error);
-            await say({
-                text: "Sorry, there was an error deleting the factoid.",
-                thread_ts: message.thread_ts
-            });
-        }
-    });
-
-    // Handle factoid update/append actions
-    app.action(/^factoid_(update|append|cancel)_\d+$/, async ({ action, ack, respond, body }) => {
-        await ack();
-        
-        const choice = action.value;
-        const team = body.team.id || 'default';
-
-        try {
-            // Extract the original factoid key from the message text
-            const messageText = body.message.text;
-            const keyMatch = messageText.match(/factoid for "([^"]+)"/);
-            if (!keyMatch) throw new Error('Could not determine factoid key');
-
-            const key = keyMatch[1];
-            const factoids = await loadFacts(team);
-            
-            // Find the factoid
-            const factIndex = key.startsWith('<@') ? key.match(/<@([^>]+)>/)[1] : key.toLowerCase();
-            
-            if (!factoids.data[factIndex]) {
-                await respond({
-                    text: "Sorry, I can't find that factoid anymore.",
-                    replace_original: true
-                });
-                return;
-            }
-
-            if (choice === 'update') {
-                // Update logic here
-                // You'll need to store the new value somewhere
-                await respond({
-                    text: `✅ Updated factoid for "${key}"`,
-                    replace_original: true
-                });
-            } else if (choice === 'append') {
-                // Append logic here
-                await respond({
-                    text: `✅ Appended to factoid for "${key}"`,
-                    replace_original: true
-                });
-            } else {
-                await respond({
-                    text: '❌ Cancelled - keeping the existing factoid.',
-                    replace_original: true
-                });
-            }
-        } catch (error) {
-            console.error('Error handling factoid action:', error);
-            await respond({
-                text: "Sorry, there was an error processing your request.",
-                replace_original: false
-            });
         }
     });
 };

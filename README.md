@@ -6,45 +6,9 @@ This provides a modular architecture for adding new features to the bot.
 
 ## Plugins
 
-### Character AI
-
-- Provides conversational AI capabilities using OpenAI
-- Multiple character personalities available
-- Maintains conversation context
-- Understands bot capabilities and can explain them
-- Responds to direct messages and mentions
-- Automatically defers to other plugins for specific commands
-
-The character plugin acts as a fallback handler - it will only respond if no other plugin claims the message. This ensures that specific commands are handled by their respective plugins while general conversation is handled by the AI.
-
-Examples:
-
-- Direct message with the bot
-- Mention the bot in a channel: `@Lullabot how do I use Views in Drupal?`
-
-### Command Registration System
-
-The bot uses a plugin registry system where each plugin registers its command patterns. This ensures proper message routing and prevents conflicts between plugins.
-
-Plugins register their patterns using:
-
-```javascript
-app.registerPlugin('pluginName', [
-    /^command pattern$/i,
-    /^another pattern$/i
-]);
-```
-
-The bot will:
-
-1. Check incoming messages against all registered patterns
-2. Route messages to the appropriate plugin
-3. Fall back to the character plugin for general conversation
-4. Log routing decisions for debugging
-
 ### Factoids
 
-- Store and retrieve custom responses using explicit commands
+- Store and retrieve custom responses
 - Support for direct responses and templated replies
 - Update or append to existing factoids
 - Interactive buttons for managing factoid updates
@@ -52,10 +16,10 @@ The bot will:
 
 Examples:
 
-- Query: `!factoid: drupal?`
-- Set: `!factoid: drupal is a content management system`
-- Set with reply: `!factoid: greeting is <reply> Hello there!`
-- Delete: `!factoid: forget drupal`
+- Query: `X?`
+- Set: `@Lullabot X is Y`
+- Set with reply: `@LullabotX is <reply>Y`
+- Delete: `@Lullabot forget X`
 
 ### Karma System
 
@@ -114,72 +78,31 @@ Examples:
 
 1. Create a Slack App at api.slack.com/apps
 
-2. Create an OpenAI API key at platform.openai.com
-
-3. Copy the environment template:
+2. Copy the environment template:
 
    ```bash
    cp .env.defaults .env
    ```
 
-4. Configure your `.env` file with your tokens and secrets:
+3. Configure your `.env` file with your tokens and secrets:
+
    - `CLIENT_SIGNING_SECRET`: Found in "Basic Information" > "App Credentials"
    - `BOT_TOKEN`: Found in "OAuth & Permissions" > "Bot User OAuth Token"
    - `SLACK_APP_TOKEN`: Generate in "Basic Information" > "App-Level Tokens" (needs `connections:write`)
-   - `OPENAI_API_KEY`: Your OpenAI API key
-   - `DEFAULT_CHARACTER`: Character to use (defaults to 'default')
    - `BAMBOO_TOKEN`: Your BambooHR API key (optional)
    - `BAMBOO_SUBDOMAIN`: Your BambooHR subdomain (optional)
 
-5. Install dependencies:
+4. Install dependencies:
 
    ```bash
    npm install
    ```
 
-6. Start the bot:
+5. Start the bot:
 
    ```bash
    npm start
    ```
-
-## Character Configuration
-
-Characters are defined in JSON files within the `plugins/characters/` directory. Each character file defines:
-
-- Personality traits
-- Language model settings
-- System prompts
-- Knowledge base
-- Response styles
-
-Example character configuration:
-
-```json
-{
-    "name": "Character Name",
-    "settings": {
-        "model": "gpt-4",
-        "temperature": 0.7,
-        "max_tokens": 500
-    },
-    "bio": [
-        "Character background",
-        "Personality traits"
-    ],
-    "systemPrompt": "Instructions for the AI model"
-}
-```
-
-### Available Models
-
-The character configuration supports different OpenAI models:
-
-- `gpt-4`: Most capable model, best for complex conversations
-- `gpt-4-turbo`: Faster version of GPT-4
-- `gpt-4o-mini`: most advanced model in the small models category, and cheapest model
-
-Adjust the model in the character's settings based on your needs.
 
 ## Required Slack App Permissions
 
@@ -196,31 +119,6 @@ The bot uses file-based JSON storage in the `data` directory for:
 ## Plugin Architecture
 
 The bot uses a modular plugin system. Each feature is implemented as a separate plugin in the `plugins` directory. New functionality can be added by creating new plugin files.
-
-### Creating a New Plugin
-
-1. Create a new plugin file in the `plugins` directory
-2. Export an async function that takes the Bolt app instance as a parameter
-3. Register your plugin's command patterns
-4. Use Bolt's event system to handle messages and interactions
-5. Follow existing patterns for data storage and error handling
-
-Example plugin structure:
-
-```javascript
-module.exports = async (app) => {
-    // Register plugin patterns
-    app.registerPlugin('myplugin', [
-        /^mycommand$/i,
-        /^another command$/i
-    ]);
-
-    // Handle commands
-    app.message(/^mycommand$/i, async ({ message, say }) => {
-        await say('Command handled!');
-    });
-};
-```
 
 ## Contributing
 
@@ -239,7 +137,6 @@ module.exports = async (app) => {
 ## Dependencies
 
 - @slack/bolt: Slack Bolt framework
-- openai: OpenAI API client
 - datejs: Date parsing and formatting
 - dotenv: Environment variable management
 

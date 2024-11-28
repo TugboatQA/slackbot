@@ -1,14 +1,16 @@
 /**
- * Handle giving/taking karma points for users and items.
- * Karma is stored per team and persists across all channels.
- * Users cannot give karma to themselves.
- * 
- * Examples:
- * - @user++ (give karma to user)
- * - thing++ (give karma to thing)
- * - @user-- (take karma from user)
- * - karma @user (check user's karma)
- * - karma thing (check thing's karma)
+ * @file
+ *
+ * Handle giving/taking karma.
+ *
+ * Karma is stored team side, so any channel that the bot is in for this team
+ * will use the same set of karma data.
+ *
+ *  Examples:
+ *      @eojthebrave++
+ *      cats++
+ *      tacos--
+ *      :taylor:++
  */
 
 const fs = require('fs').promises;
@@ -54,16 +56,6 @@ async function isNarcissism(giverId, receiverId) {
 }
 
 module.exports = async (app) => {
-    // Register plugin patterns
-    app.registerPlugin('karma', [
-        /^karma\s+@\w+/i,
-        /^karma\s+\w+$/i,
-        /\s*@\w+\+\+$/,
-        /\s*@\w+\-\-$/,
-        /\s*\w+\+\+$/,
-        /\s*\w+\-\-$/
-    ]);
-
     // Give/take karma
     app.message(/(.+?)(-{2,}|\+{2,})\s*$/, async ({ message, context, client, say }) => {
         if (!context.matches) return;
