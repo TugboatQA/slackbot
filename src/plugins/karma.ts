@@ -12,7 +12,7 @@ interface KarmaStorage extends Storage {
 }
 
 // Storage helper functions
-const storageDir = path.join(__dirname, '..', '..', 'data');
+const storageDir = path.join(__dirname, '..', '..', 'data', 'teams');
 const getStoragePath = (team: string): string => path.join(storageDir, `${team}_karma.json`);
 
 async function loadKarma(team: string): Promise<KarmaStorage> {

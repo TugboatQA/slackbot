@@ -21,7 +21,7 @@ interface FactoidStorage extends Storage {
 }
 
 // Storage helper functions
-const storageDir = path.join(__dirname, '..', '..', 'data');
+const storageDir = path.join(__dirname, '..', '..', 'data', 'teams');
 const getStoragePath = (team: string): string => path.join(storageDir, `${team}_factoids.json`);
 
 async function loadFacts(team: string): Promise<FactoidStorage> {
