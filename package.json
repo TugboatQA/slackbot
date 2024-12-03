@@ -2,14 +2,28 @@
     "name": "botkit-lullabot",
     "version": "1.0.0",
     "description": "",
-    "main": "bot.js",
+    "main": "dist/bot.js",
     "scripts": {
-        "start": "node bot.js",
+        "start": "node dist/bot.js",
+        "dev": "ts-node src/bot.ts",
+        "build": "tsc",
+        "watch": "tsc -w",
+        "clean": "rimraf dist",
+        "prebuild": "npm run clean",
+        "prestart": "npm run build",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "dependencies": {
-        "@slack/bolt": "^3.17.0",
+        "@slack/bolt": "^4.1.1",
+        "@slack/types": "^2.14.0",
         "datejs": "^1.0.0-rc3",
-        "dotenv": "^7.0.0"
+        "dotenv": "^16.0.0"
+    },
+    "devDependencies": {
+        "@types/datejs": "^0.0.35",
+        "@types/node": "^18.0.0",
+        "rimraf": "^5.0.0",
+        "ts-node": "^10.9.0",
+        "typescript": "^5.0.0"
     }
 }

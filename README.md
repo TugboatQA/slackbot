@@ -4,6 +4,74 @@ A Slack bot built with the [Bolt framework](https://tools.slack.dev/bolt-js/) th
 
 This provides a modular architecture for adding new features to the bot.
 
+## Development
+
+### Prerequisites
+
+- Node.js (v18 or higher recommended)
+- npm
+- A Slack workspace with admin access
+- Slack bot token and app-level token
+
+### Setup
+
+1. Clone the repository
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Create a `.env` file in the root directory with your Slack tokens:
+
+```
+BOT_TOKEN=xoxb-your-bot-token
+SLACK_APP_TOKEN=xapp-your-app-token
+CLIENT_SIGNING_SECRET=your-signing-secret
+```
+
+### Development Commands
+
+```bash
+npm run dev      # Run in development mode with ts-node
+npm run build    # Build TypeScript to JavaScript
+npm start        # Build and run the production version
+npm run watch    # Watch for changes and rebuild
+```
+
+### Creating New Plugins
+
+Plugins are written in TypeScript and should be placed in the `src/plugins` directory. Each plugin should:
+
+1. Import required types:
+
+```typescript
+import { App } from '@slack/bolt';
+import { Plugin } from '../types';
+```
+
+2. Export a default function that implements the Plugin type:
+
+```typescript
+const myPlugin: Plugin = async (app: App): Promise<void> => {
+    // Your plugin code here
+};
+
+export default myPlugin;
+```
+
+3. Use proper type annotations for Slack events:
+
+```typescript
+import { GenericMessageEvent } from '@slack/types/dist/events/message';
+import { AppMentionEvent } from '@slack/types/dist/events/app';
+
+app.message(/pattern/, async ({ message, say }) => {
+    const msg = message as GenericMessageEvent;
+    // Handle message
+});
+```
+
 ## Plugins
 
 ### Help
