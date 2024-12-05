@@ -7,7 +7,6 @@ import * as path from 'path';
 import { Plugin, Storage } from '../types';
 
 interface Fact {
-    index: string;
     key: string;
     be: string;
     reply: boolean;
@@ -78,6 +77,15 @@ function factString(fact: Fact): string {
     return result;
 }
 
+// HTML entity decoder
+function decodeHtmlEntities(text: string): string {
+    return text.replace(/&lt;/g, '<')
+               .replace(/&gt;/g, '>')
+               .replace(/&amp;/g, '&')
+               .replace(/&quot;/g, '"')
+               .replace(/&#39;/g, "'");
+}
+
 const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
     // Add new list command
     app.message(/^!factoid:\s*list$/i, async ({ message, say, context }) => {
@@ -111,12 +119,12 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         }
     });
 
-    // Query a factoid
-    app.message(/^!factoid:\s*([^.,!?\s]+)\?$/, async ({ message, context, client, say }) => {
+    // Query a factoid - triggered by any word(s) followed by ? or !
+    app.message(/^([^?!]+)[!?]/, async ({ message, context, client, say }) => {
         if (!context?.matches?.[1]) return;
 
         const msg = message as GenericMessageEvent;
-        const index = context.matches[1].trim();
+        const index = context.matches[1].trim().toLowerCase();
         const team = context.teamId || 'default';
         
         const factoids = await loadFacts(team);
@@ -125,10 +133,8 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         let fact = null;
         if (user) {
             fact = factoids.data[user.id] || null;
-            if (fact) fact.index = user.id;
         } else {
-            fact = factoids.data[index.toLowerCase()] || null;
-            if (fact) fact.index = index.toLowerCase();
+            fact = factoids.data[index] || null;
         }
 
         if (fact) {
@@ -142,39 +148,80 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
     // Set factoid - only through direct mentions
     app.event('app_mention', async ({ event, client, say, context }) => {
         const mention = event as AppMentionEvent;
-        // Remove the bot mention and any leading/trailing whitespace
-        const text = mention.text.replace(/<@[^>]+>\s*/, '').trim();
+        // Remove the bot mention, decode HTML entities, and trim
+        const text = decodeHtmlEntities(mention.text.replace(/<@[^>]+>\s*/, '').trim());
+
+        // Handle forget command
+        const forgetMatch = text.match(/^forget\s+(.+)$/i);
+        if (forgetMatch) {
+            const team = context.teamId || 'default';
+            const key = forgetMatch[1]?.trim().toLowerCase();
+
+            if (!key) return;
+
+            try {
+                const factoids = await loadFacts(team);
+                if (factoids.data[key]) {
+                    delete factoids.data[key];
+                    await saveFacts(team, factoids);
+                    await say({
+                        text: `I've forgotten about "${key}"`,
+                        thread_ts: mention.thread_ts || mention.ts
+                    });
+                } else {
+                    await say({
+                        text: `I don't know anything about "${key}"`,
+                        thread_ts: mention.thread_ts || mention.ts
+                    });
+                }
+            } catch (err) {
+                console.error('Error forgetting factoid:', err);
+                await say({
+                    text: `There was a problem forgetting the factoid: ${err}`,
+                    thread_ts: mention.thread_ts || mention.ts
+                });
+            }
+            return;
+        }
         
         // Match "X is Y" pattern
-        const setMatches = text.match(/^(.+?)\s(is|are)\s(<reply>)?(.+)$/);
+        const setMatches = text.match(/^(.+?)\s+(is|are)\s+(.+)$/i);
         if (setMatches) {
             const team = context.teamId || 'default';
-            const index = setMatches[1]?.trim();
+            const key = setMatches[1]?.trim();
             
-            if (!index) return;
+            if (!key) return;
 
-            const user = await getUser(client, index);
+            const user = await getUser(client, key);
+            let value = setMatches[3]?.trim() || '';
+            const hasReply = value.startsWith('<reply>');
+            
+            // If it's a reply, remove the <reply> tag from the value
+            if (hasReply) {
+                value = value.replace(/^<reply>\s*/, '').trim();
+            }
 
             const fact: Fact = {
-                index: user ? user.id : index.toLowerCase(),
-                key: user ? `<@${user.id}>` : index.toLowerCase(),
+                key: user ? `<@${user.id}>` : key.toLowerCase(),
                 be: setMatches[2]?.trim() || 'is',
-                reply: !!setMatches[3],
-                value: [setMatches[4]?.trim() || '']
+                reply: hasReply,
+                value: [value]
             };
 
             const factoids = await loadFacts(team);
-            const existing = factoids.data[fact.index];
+            const index = user ? user.id : key.toLowerCase();
+            const existing = factoids.data[index];
 
             if (!existing) {
                 try {
-                    factoids.data[fact.index] = fact;
+                    factoids.data[index] = fact;
                     await saveFacts(team, factoids);
                     await say({ 
                         text: 'Got it!',
                         thread_ts: mention.thread_ts || mention.ts
                     });
                 } catch (err) {
+                    console.error('Error saving factoid:', err);
                     await say({ 
                         text: `There was a problem saving the factoid: ${err}`,
                         thread_ts: mention.thread_ts || mention.ts
@@ -245,17 +292,17 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
 
                     try {
                         if (choice === 'update') {
-                            factoids.data[fact.index] = fact;
+                            factoids.data[index] = fact;
                             await saveFacts(team, factoids);
                             await respond({
                                 text: `✅ Updated! New factoid is:\n"${factString(fact)}"`,
                                 replace_original: true
                             });
                         } else if (choice === 'append') {
-                            factoids.data[fact.index].value = factoids.data[fact.index].value.concat(fact.value);
+                            factoids.data[index].value = factoids.data[index].value.concat(fact.value);
                             await saveFacts(team, factoids);
                             await respond({
-                                text: `✅ Appended! Updated factoid is now:\n"${factString(factoids.data[fact.index])}"`,
+                                text: `✅ Appended! Updated factoid is now:\n"${factString(factoids.data[index])}"`,
                                 replace_original: true
                             });
                         } else {
@@ -273,31 +320,6 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
                 });
             }
             return;
-        }
-
-        // Match "forget X" pattern
-        const forgetMatches = text.match(/^forget\s(.*?)$/);
-        if (forgetMatches) {
-            const team = context.teamId || 'default';
-            const index = forgetMatches[1].trim();
-            const factoids = await loadFacts(team);
-            
-            const user = await getUser(client, index);
-            const factIndex = user ? user.id : index.toLowerCase();
-            
-            if (factoids.data[factIndex]) {
-                delete factoids.data[factIndex];
-                await saveFacts(team, factoids);
-                await say({
-                    text: `I've forgotten about "${index}"`,
-                    thread_ts: mention.thread_ts || mention.ts
-                });
-            } else {
-                await say({
-                    text: `I don't have any factoid for "${index}"`,
-                    thread_ts: mention.thread_ts || mention.ts
-                });
-            }
         }
     });
 };

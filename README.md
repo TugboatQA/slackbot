@@ -95,18 +95,40 @@ Examples:
 
 ### Factoids
 
+Store and retrieve custom responses for frequently asked questions or common information.
+
+Features:
 - Store and retrieve custom responses
 - Support for direct responses and templated replies
 - Update or append to existing factoids
 - Interactive buttons for managing factoid updates
 - Delete factoids with the 'forget' command
+- Trigger factoids by starting a message with the keyword followed by ? or !
 
 Examples:
 
-- Query: `X?`
-- Set: `@Lullabot X is Y`
-- Set with reply: `@LullabotX is <reply>Y`
-- Delete: `@Lullabot forget X`
+**Query a factoid:**
+```
+sales?                   # Show the "sales" factoid
+@username?              # Show factoid for a user
+documentation!          # Show the "documentation" factoid (! works same as ?)
+```
+
+**Manage factoids:**
+```
+!factoid: list          # List all available factoids
+@bot X is Y             # Set a new factoid
+@bot X is <reply>Y      # Set a factoid with direct reply
+@bot forget X           # Delete a factoid
+```
+
+When setting a factoid, you can use `<reply>` to make the bot respond with just the content instead of "X is Y":
+- Without reply: "sales is Check out https://sales.example.com"
+- With reply: "Check out https://sales.example.com"
+
+**Thread Support:**
+- All factoid responses respect message threading
+- Updates and management happen in threads when triggered from a thread
 
 ### Karma System
 

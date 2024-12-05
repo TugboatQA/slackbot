@@ -16,10 +16,10 @@ const helpText: HelpText = {
         title: 'Factoids',
         description: 'Store and retrieve custom responses',
         commands: [
-            { pattern: '!factoid: X?', description: 'Query a factoid' },
-            { pattern: '@Lullabot X is Y', description: 'Set a factoid' },
-            { pattern: '@Lullabot X is <reply>Y', description: 'Set with reply' },
-            { pattern: '@Lullabot forget X', description: 'Delete a factoid' },
+            { pattern: 'keyword?', description: 'Query a factoid (or use ! instead of ?)' },
+            { pattern: '@bot X is Y', description: 'Set a factoid' },
+            { pattern: '@bot X is <reply>Y', description: 'Set with direct reply' },
+            { pattern: '@bot forget X', description: 'Delete a factoid' },
             { pattern: '!factoid: list', description: 'List all factoids' }
         ]
     },
