@@ -26,8 +26,10 @@ const loadPlugins = async (app: App): Promise<void> => {
     }
 
     // Read all files from plugins directory
+    // In dev mode (ts-node) look for .ts files, in prod mode look for .js files
+    const extension = process.env.NODE_ENV === 'production' ? '.js' : '.ts';
     const pluginFiles = fs.readdirSync(pluginsDir)
-        .filter(file => file.endsWith('.js'));
+        .filter(file => file.endsWith(extension));
 
     console.log(`Found ${pluginFiles.length} plugins to load:`, pluginFiles);
 
