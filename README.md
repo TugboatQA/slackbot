@@ -22,7 +22,26 @@ This provides a modular architecture for adding new features to the bot.
 npm install
 ```
 
-3. Create a `.env` file in the root directory with your Slack tokens:
+3. Create a new Slack app at https://api.slack.com/apps/
+
+4. Configure the app using the provided `slack-app-manifest.json` file
+
+5. Create an app-level token with these scopes:
+   - connections:write
+   - authorizations:read 
+   - app_configurations:write
+   This will be your `SLACK_APP_TOKEN` (starts with xapp-)
+
+6. Under OAuth & Permissions:
+   - Click "Install to Workspace" to get the OAuth token
+   - Copy the Bot User OAuth Token - this will be your `BOT_TOKEN` (starts with xoxb-)
+
+7. Under Basic Information:
+   - Find "Signing Secret" in App Credentials section
+   - Copy the signing secret - this will be your `CLIENT_SIGNING_SECRET`
+
+
+8. Create a `.env` file in the root directory with your Slack tokens:
 
 ```
 BOT_TOKEN=xoxb-your-bot-token
@@ -204,37 +223,7 @@ botsnack              # Give the bot a snack
 @bot botsnack         # Give the bot a snack (with mention)
 ```
 
-## Setup
 
-1. Create a Slack App at api.slack.com/apps
-
-2. Copy the environment template:
-
-   ```bash
-   cp .env.defaults .env
-   ```
-
-3. Configure your `.env` file with your tokens and secrets:
-
-   - `CLIENT_SIGNING_SECRET`: Found in "Basic Information" > "App Credentials"
-   - `BOT_TOKEN`: Found in "OAuth & Permissions" > "Bot User OAuth Token"
-   - `SLACK_APP_TOKEN`: Generate in "Basic Information" > "App-Level Tokens" (needs `connections:write`)
-
-4. Install dependencies:
-
-   ```bash
-   npm install
-   ```
-
-5. Start the bot:
-
-   ```bash
-   npm start
-   ```
-
-## Required Slack App Permissions
-
-See `slack-app-manifest.json` for required permissions.
 
 ## Data Storage
 
