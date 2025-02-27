@@ -19,6 +19,29 @@ interface FactoidStorage extends Storage {
     };
 }
 
+// Keep track of pending forget requests
+interface ForgetRequest {
+    key: string;
+    team: string;
+    channel: string;
+    thread_ts?: string;
+    timestamp: number;
+}
+
+// Map of user ID to their pending forget request
+const pendingForgetRequests: Map<string, ForgetRequest> = new Map();
+
+// Cleanup old requests every 10 minutes (600000 ms)
+setInterval(() => {
+    const now = Date.now();
+    for (const [userId, request] of pendingForgetRequests.entries()) {
+        // Remove requests older than 5 minutes
+        if (now - request.timestamp > 300000) {
+            pendingForgetRequests.delete(userId);
+        }
+    }
+}, 600000);
+
 // Storage helper functions
 const storageDir = path.join(__dirname, '..', '..', 'data', 'teams');
 const getStoragePath = (team: string): string => path.join(storageDir, `${team}_factoids.json`);
@@ -145,6 +168,53 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         }
     });
 
+    // Handle YES/NO responses to forget confirmation
+    app.message(/^(YES|NO)$/i, async ({ message, say }) => {
+        const msg = message as GenericMessageEvent;
+        const userId = msg.user;
+        const pendingRequest = pendingForgetRequests.get(userId);
+        
+        // If there's no pending request for this user, ignore
+        if (!pendingRequest) return;
+        
+        // Remove the pending request
+        pendingForgetRequests.delete(userId);
+        
+        // If NO, cancel the forget operation
+        if (msg.text?.toUpperCase() === 'NO') {
+            await say({
+                text: `Okay, I'll keep the factoid for "${pendingRequest.key}".`,
+                ...(msg.thread_ts && { thread_ts: msg.thread_ts })
+            });
+            return;
+        }
+        
+        // If YES, proceed with forgetting
+        try {
+            const factoids = await loadFacts(pendingRequest.team);
+            // Since ForgetRequest.key is defined as a string (not optional), we can use it directly
+            if (factoids.data[pendingRequest.key]) {
+                delete factoids.data[pendingRequest.key];
+                await saveFacts(pendingRequest.team, factoids);
+                await say({
+                    text: `Okay, I have forgotten about "${pendingRequest.key}"`,
+                    ...(msg.thread_ts && { thread_ts: msg.thread_ts })
+                });
+            } else {
+                await say({
+                    text: `I don't know anything about "${pendingRequest.key}"`,
+                    ...(msg.thread_ts && { thread_ts: msg.thread_ts })
+                });
+            }
+        } catch (err) {
+            console.error('Error forgetting factoid:', err);
+            await say({
+                text: `There was a problem forgetting the factoid: ${err}`,
+                ...(msg.thread_ts && { thread_ts: msg.thread_ts })
+            });
+        }
+    });
+
     // Set and forget factoid handlers for direct messages
     app.message(/^forget\s+(.+)$/i, async ({ message, context, say }) => {
         const msg = message as GenericMessageEvent;
@@ -156,10 +226,18 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         try {
             const factoids = await loadFacts(team);
             if (factoids.data[key]) {
-                delete factoids.data[key];
-                await saveFacts(team, factoids);
+                // Create a pending forget request
+                pendingForgetRequests.set(msg.user, {
+                    key,
+                    team,
+                    channel: msg.channel,
+                    thread_ts: msg.thread_ts,
+                    timestamp: Date.now()
+                });
+                
+                // Ask for confirmation
                 await say({
-                    text: `I've forgotten about "${key}"`,
+                    text: `Are you sure you want me to forget "${key}"? Say YES, or NO`,
                     ...(msg.thread_ts && { thread_ts: msg.thread_ts })
                 });
             } else {
@@ -169,9 +247,9 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
                 });
             }
         } catch (err) {
-            console.error('Error forgetting factoid:', err);
+            console.error('Error checking factoid:', err);
             await say({
-                text: `There was a problem forgetting the factoid: ${err}`,
+                text: `There was a problem checking the factoid: ${err}`,
                 ...(msg.thread_ts && { thread_ts: msg.thread_ts })
             });
         }
@@ -322,6 +400,54 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         // Remove the bot mention, decode HTML entities, and trim
         const text = decodeHtmlEntities(mention.text.replace(/<@[^>]+>\s*/, '').trim());
 
+        // Handle YES/NO responses to forget confirmation in mentions
+        if (/^(YES|NO)$/i.test(text)) {
+            // Make sure the user ID is a string
+            const userId = mention.user || '';
+            const pendingRequest = pendingForgetRequests.get(userId);
+            
+            // If there's no pending request for this user, ignore
+            if (!pendingRequest) return;
+            
+            // Remove the pending request
+            pendingForgetRequests.delete(userId);
+            
+            // If NO, cancel the forget operation
+            if (text.toUpperCase() === 'NO') {
+                await say({
+                    text: `Okay, I'll keep the factoid for "${pendingRequest.key}".`,
+                    thread_ts: mention.thread_ts || mention.ts
+                });
+                return;
+            }
+            
+            // If YES, proceed with forgetting
+            try {
+                const factoids = await loadFacts(pendingRequest.team);
+                // Since ForgetRequest.key is defined as a string (not optional), we can use it directly
+                if (factoids.data[pendingRequest.key]) {
+                    delete factoids.data[pendingRequest.key];
+                    await saveFacts(pendingRequest.team, factoids);
+                    await say({
+                        text: `Okay, I have forgotten about "${pendingRequest.key}"`,
+                        thread_ts: mention.thread_ts || mention.ts
+                    });
+                } else {
+                    await say({
+                        text: `I don't know anything about "${pendingRequest.key}"`,
+                        thread_ts: mention.thread_ts || mention.ts
+                    });
+                }
+            } catch (err) {
+                console.error('Error forgetting factoid:', err);
+                await say({
+                    text: `There was a problem forgetting the factoid: ${err}`,
+                    thread_ts: mention.thread_ts || mention.ts
+                });
+            }
+            return;
+        }
+
         // Handle forget command
         const forgetMatch = text.match(/^forget\s+(.+)$/i);
         if (forgetMatch) {
@@ -333,10 +459,20 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
             try {
                 const factoids = await loadFacts(team);
                 if (factoids.data[key]) {
-                    delete factoids.data[key];
-                    await saveFacts(team, factoids);
+                    // Create a pending forget request
+                    if (mention.user) {
+                        pendingForgetRequests.set(mention.user, {
+                            key,
+                            team,
+                            channel: mention.channel,
+                            thread_ts: mention.thread_ts || mention.ts,
+                            timestamp: Date.now()
+                        });
+                    }
+                    
+                    // Ask for confirmation
                     await say({
-                        text: `I've forgotten about "${key}"`,
+                        text: `Are you sure you want me to forget "${key}"? Say YES, or NO`,
                         thread_ts: mention.thread_ts || mention.ts
                     });
                 } else {
@@ -346,9 +482,9 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
                     });
                 }
             } catch (err) {
-                console.error('Error forgetting factoid:', err);
+                console.error('Error checking factoid:', err);
                 await say({
-                    text: `There was a problem forgetting the factoid: ${err}`,
+                    text: `There was a problem checking the factoid: ${err}`,
                     thread_ts: mention.thread_ts || mention.ts
                 });
             }
@@ -451,7 +587,7 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
                         }
                     ],
                     text: `I already have a factoid for "${existing.key}". What would you like to do?`,
-                    thread_ts: mention.ts
+                    thread_ts: mention.thread_ts || mention.ts
                 });
 
                 // Handle button actions
