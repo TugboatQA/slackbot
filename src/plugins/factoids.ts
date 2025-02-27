@@ -166,17 +166,41 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         if (!context?.matches?.[1]) return;
 
         const msg = message as GenericMessageEvent;
-        const index = context.matches[1].trim().toLowerCase();
+        const rawQuery = context.matches[1].trim();
+        const index = rawQuery.toLowerCase();
         const team = context.teamId || 'default';
         
         const factoids = await loadFacts(team);
-        const user = await getUser(client, index);
         
+        // First check if the query contains a user mention
+        const userMentionMatch = rawQuery.match(/<@([UW][A-Z0-9]+)>/);
         let fact = null;
-        if (user) {
-            fact = factoids.data[user.id] || null;
+        
+        if (userMentionMatch) {
+            // If query has a user mention like "<@U12345>", look up by that user ID
+            const userId = userMentionMatch[1];
+            fact = factoids.data[userId] || null;
+            
+            // If no fact found by user ID, try with the full mention format
+            if (!fact) {
+                fact = factoids.data[`<@${userId}>`] || null;
+            }
         } else {
-            fact = factoids.data[index] || null;
+            // Try to resolve as a user if there's no direct mention
+            const user = await getUser(client, rawQuery);
+            
+            if (user) {
+                // Try the user ID first
+                fact = factoids.data[user.id] || null;
+                
+                // If no fact found, try with the full mention format
+                if (!fact) {
+                    fact = factoids.data[`<@${user.id}>`] || null;
+                }
+            } else {
+                // Fall back to standard text lookup
+                fact = factoids.data[index] || null;
+            }
         }
 
         if (fact) {
@@ -342,7 +366,27 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
             // Skip if the key is a reserved command
             if (isReservedCommand(key)) return;
 
-            const user = await getUser(client, key);
+            // Check if the key contains a user mention
+            const userMentionMatch = key.match(/<@([UW][A-Z0-9]+)>/);
+            let storeKey = key.toLowerCase();
+            let displayKey = key;
+            let userId = null;
+
+            if (userMentionMatch) {
+                // If the key directly contains a user mention, use the user ID as the storage key
+                userId = userMentionMatch[1];
+                storeKey = userId;
+                displayKey = key; // Preserve the original mention format for display
+            } else {
+                // Try to resolve as a user if there's no direct mention
+                const user = await getUser(client, key);
+                if (user) {
+                    userId = user.id;
+                    storeKey = userId;
+                    displayKey = `<@${userId}>`;
+                }
+            }
+
             let value = setMatches[3]?.trim() || '';
             const hasReply = value.startsWith('<reply>');
             
@@ -352,19 +396,18 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
             }
 
             const fact: Fact = {
-                key: user ? `<@${user.id}>` : key.toLowerCase(),
+                key: displayKey,
                 be: setMatches[2]?.trim() || 'is',
                 reply: hasReply,
                 value: [value]
             };
 
             const factoids = await loadFacts(team);
-            const index = user ? user.id : key.toLowerCase();
-            const existing = factoids.data[index];
+            const existing = factoids.data[storeKey];
 
             if (!existing) {
                 try {
-                    factoids.data[index] = fact;
+                    factoids.data[storeKey] = fact;
                     await saveFacts(team, factoids);
                     await say({ 
                         text: 'Got it!',
@@ -442,17 +485,17 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
 
                     try {
                         if (choice === 'update') {
-                            factoids.data[index] = fact;
+                            factoids.data[storeKey] = fact;
                             await saveFacts(team, factoids);
                             await respond({
                                 text: `✅ Updated! New factoid is:\n"${factString(fact)}"`,
                                 replace_original: true
                             });
                         } else if (choice === 'append') {
-                            factoids.data[index].value = factoids.data[index].value.concat(fact.value);
+                            factoids.data[storeKey].value = factoids.data[storeKey].value.concat(fact.value);
                             await saveFacts(team, factoids);
                             await respond({
-                                text: `✅ Appended! Updated factoid is now:\n"${factString(factoids.data[index])}"`,
+                                text: `✅ Appended! Updated factoid is now:\n"${factString(factoids.data[storeKey])}"`,
                                 replace_original: true
                             });
                         } else {
