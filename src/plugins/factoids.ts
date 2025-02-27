@@ -141,7 +141,7 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
             if (keys.length === 0) {
                 await say({
                     text: "No factoids stored yet.",
-                    ...(msg.thread_ts && { thread_ts: msg.thread_ts })
+                    thread_ts: msg.thread_ts || msg.ts // Always reply in a thread
                 });
                 return;
             }
@@ -150,13 +150,13 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
 
             await say({
                 text: `Available factoids: ${sortedKeys.join(', ')}`,
-                ...(msg.thread_ts && { thread_ts: msg.thread_ts })
+                thread_ts: msg.thread_ts || msg.ts // Always reply in a thread
             });
         } catch (error) {
             console.error('Error listing factoids:', error);
             await say({
                 text: "Sorry, there was an error listing the factoids.",
-                ...(msg.thread_ts && { thread_ts: msg.thread_ts })
+                thread_ts: msg.thread_ts || msg.ts // Always reply in a thread
             });
         }
     });
