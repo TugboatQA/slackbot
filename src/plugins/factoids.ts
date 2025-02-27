@@ -145,6 +145,177 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         }
     });
 
+    // Set and forget factoid handlers for direct messages
+    app.message(/^forget\s+(.+)$/i, async ({ message, context, say }) => {
+        const msg = message as GenericMessageEvent;
+        const team = context.teamId || 'default';
+        const key = context.matches?.[1]?.trim().toLowerCase();
+
+        if (!key) return;
+
+        try {
+            const factoids = await loadFacts(team);
+            if (factoids.data[key]) {
+                delete factoids.data[key];
+                await saveFacts(team, factoids);
+                await say({
+                    text: `I've forgotten about "${key}"`,
+                    ...(msg.thread_ts && { thread_ts: msg.thread_ts })
+                });
+            } else {
+                await say({
+                    text: `I don't know anything about "${key}"`,
+                    ...(msg.thread_ts && { thread_ts: msg.thread_ts })
+                });
+            }
+        } catch (err) {
+            console.error('Error forgetting factoid:', err);
+            await say({
+                text: `There was a problem forgetting the factoid: ${err}`,
+                ...(msg.thread_ts && { thread_ts: msg.thread_ts })
+            });
+        }
+    });
+
+    // Set factoid in direct messages
+    app.message(/^(.+?)\s+(is|are)\s+(.+)$/i, async ({ message, context, client, say }) => {
+        const msg = message as GenericMessageEvent;
+        if (!context.matches) return;
+        
+        const team = context.teamId || 'default';
+        const key = context.matches[1]?.trim();
+        
+        if (!key) return;
+
+        const user = await getUser(client, key);
+        let value = context.matches[3]?.trim() || '';
+        const hasReply = value.startsWith('<reply>');
+        
+        // If it's a reply, remove the <reply> tag from the value
+        if (hasReply) {
+            value = value.replace(/^<reply>\s*/, '').trim();
+        }
+
+        const fact: Fact = {
+            key: user ? `<@${user.id}>` : key.toLowerCase(),
+            be: context.matches[2]?.trim() || 'is',
+            reply: hasReply,
+            value: [value]
+        };
+
+        const factoids = await loadFacts(team);
+        const index = user ? user.id : key.toLowerCase();
+        const existing = factoids.data[index];
+
+        if (!existing) {
+            try {
+                factoids.data[index] = fact;
+                await saveFacts(team, factoids);
+                await say({ 
+                    text: 'Got it!',
+                    ...(msg.thread_ts && { thread_ts: msg.thread_ts })
+                });
+            } catch (err) {
+                console.error('Error saving factoid:', err);
+                await say({ 
+                    text: `There was a problem saving the factoid: ${err}`,
+                    ...(msg.thread_ts && { thread_ts: msg.thread_ts })
+                });
+            }
+        } else {
+            // Create a unique action_id for this update
+            const actionId = `factoid_update_${Date.now()}`;
+            
+            // Start a thread for confirmation with buttons
+            await say({
+                blocks: [
+                    {
+                        type: "section",
+                        text: {
+                            type: "mrkdwn",
+                            text: `I already have a factoid for "${existing.key}". It says:\n"${factString(existing)}"`
+                        }
+                    },
+                    {
+                        type: "actions",
+                        block_id: "factoid_actions",
+                        elements: [
+                            {
+                                type: "button",
+                                text: {
+                                    type: "plain_text",
+                                    text: "Update",
+                                    emoji: true
+                                },
+                                value: "update",
+                                action_id: `${actionId}_update`
+                            },
+                            {
+                                type: "button",
+                                text: {
+                                    type: "plain_text",
+                                    text: "Append",
+                                    emoji: true
+                                },
+                                value: "append",
+                                action_id: `${actionId}_append`
+                            },
+                            {
+                                type: "button",
+                                text: {
+                                    type: "plain_text",
+                                    text: "Cancel",
+                                    emoji: true
+                                },
+                                value: "cancel",
+                                style: "danger",
+                                action_id: `${actionId}_cancel`
+                            }
+                        ]
+                    }
+                ],
+                text: `I already have a factoid for "${existing.key}". What would you like to do?`,
+                ...(msg.thread_ts && { thread_ts: msg.thread_ts })
+            });
+
+            // Handle button actions
+            app.action(new RegExp(`${actionId}_(update|append|cancel)`), async ({ action, ack, respond }) => {
+                await ack();
+                
+                const buttonAction = (action as ButtonAction) as unknown as { value: string };
+                const choice = buttonAction.value;
+
+                try {
+                    if (choice === 'update') {
+                        factoids.data[index] = fact;
+                        await saveFacts(team, factoids);
+                        await respond({
+                            text: `✅ Updated! New factoid is:\n"${factString(fact)}"`,
+                            replace_original: true
+                        });
+                    } else if (choice === 'append') {
+                        factoids.data[index].value = factoids.data[index].value.concat(fact.value);
+                        await saveFacts(team, factoids);
+                        await respond({
+                            text: `✅ Appended! Updated factoid is now:\n"${factString(factoids.data[index])}"`,
+                            replace_original: true
+                        });
+                    } else {
+                        await respond({
+                            text: '❌ Cancelled - keeping the existing factoid.',
+                            replace_original: true
+                        });
+                    }
+                } catch (err) {
+                    await respond({
+                        text: `Error updating factoid: ${err}`,
+                        replace_original: false
+                    });
+                }
+            });
+        }
+    });
+
     // Set factoid - only through direct mentions
     app.event('app_mention', async ({ event, client, say, context }) => {
         const mention = event as AppMentionEvent;
