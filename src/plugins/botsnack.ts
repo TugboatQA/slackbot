@@ -2,6 +2,7 @@ import { App } from '@slack/bolt';
 import { GenericMessageEvent } from '@slack/types/dist/events/message';
 import { AppMentionEvent } from '@slack/types/dist/events/app';
 import { Plugin } from '../types';
+import patternRegistry from '../services/pattern-registry';
 
 const thankYouMessages: string[] = [
     'Thank you! :cookie:',
@@ -24,6 +25,9 @@ function getRandomMessage(): string {
 const botsnackPlugin: Plugin = async (app: App): Promise<void> => {
     // Match "botsnack" in messages
     const snackRegex = /^botsnack$/i;
+    
+    // Register pattern with the registry with high priority
+    patternRegistry.registerPattern(snackRegex, 'botsnack', 10);
 
     // Handle direct messages
     app.message(snackRegex, async ({ message, say }) => {

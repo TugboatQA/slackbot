@@ -2,6 +2,7 @@ import { App } from '@slack/bolt';
 import { GenericMessageEvent } from '@slack/types/dist/events/message';
 import { AppMentionEvent } from '@slack/types/dist/events/app';
 import { Plugin, HelpText } from '../types';
+import patternRegistry from '../services/pattern-registry';
 
 const helpText: HelpText = {
     botsnack: {
@@ -87,7 +88,20 @@ function formatFullHelp(): string {
 const helpPlugin: Plugin = async (app: App): Promise<void> => {
     // Match help commands
     const helpRegex = /^(?:help|commands|plugins)(?:\s+(\w+))?$/i;
-
+    
+    // Register patterns with the registry with high priority
+    patternRegistry.registerPattern(/^help$/i, 'help', 10);
+    patternRegistry.registerPattern(/^commands$/i, 'help', 10);
+    patternRegistry.registerPattern(/^plugins$/i, 'help', 10);
+    
+    // Also register common question words that should have higher priority than factoids
+    patternRegistry.registerPattern(/^what$/i, 'common-words', 5);
+    patternRegistry.registerPattern(/^who$/i, 'common-words', 5);
+    patternRegistry.registerPattern(/^how$/i, 'common-words', 5);
+    patternRegistry.registerPattern(/^when$/i, 'common-words', 5);
+    patternRegistry.registerPattern(/^where$/i, 'common-words', 5);
+    patternRegistry.registerPattern(/^why$/i, 'common-words', 5);
+    
     app.event('app_mention', async ({ event, say }) => {
         const mention = event as AppMentionEvent;
         const text = mention.text.replace(/<@[^>]+>\s*/, '').trim();

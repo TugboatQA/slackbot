@@ -3,6 +3,7 @@ import { GenericMessageEvent } from '@slack/types/dist/events/message';
 import { AppMentionEvent } from '@slack/types/dist/events/app';
 import * as os from 'os';
 import { Plugin } from '../types';
+import patternRegistry from '../services/pattern-registry';
 
 // Cache the hostname
 const hostname = os.hostname();
@@ -45,6 +46,9 @@ const uptimePlugin: Plugin = async (app: App): Promise<void> => {
     // Handle direct messages and mentions for uptime queries
     const patterns = ['uptime', 'identify yourself', 'who are you', 'what is your name'];
     const patternRegex = new RegExp(`^(${patterns.join('|')})$`, 'i');
+    
+    // Register patterns with the registry with high priority
+    patternRegistry.registerPattern(patternRegex, 'uptime', 10);
 
     app.message(patternRegex, async ({ message, client, say }) => {
         const msg = message as GenericMessageEvent;

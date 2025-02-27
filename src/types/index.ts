@@ -26,4 +26,17 @@ export interface HelpSection {
 
 export interface HelpText {
     [key: string]: HelpSection;
+}
+
+// Pattern registry interfaces
+export interface PatternEntry {
+    pattern: RegExp;  // The regex pattern for the command
+    pluginName: string;  // The name of the plugin that registered the pattern
+    priority: number;  // Higher priority patterns are checked first
+}
+
+export interface PatternRegistry {
+    registerPattern(pattern: RegExp, pluginName: string, priority?: number): void;
+    matchesAnyPattern(text: string): boolean;
+    getPatterns(): PatternEntry[];
 } 

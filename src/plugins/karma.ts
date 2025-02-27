@@ -4,6 +4,7 @@ import { AppMentionEvent } from '@slack/types/dist/events/app';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Plugin, Storage } from '../types';
+import patternRegistry from '../services/pattern-registry';
 
 interface KarmaStorage extends Storage {
     data: {
@@ -51,6 +52,10 @@ async function isNarcissism(giverId: string, receiverId: string): Promise<boolea
 }
 
 const karmaPlugin: Plugin = async (app: App): Promise<void> => {
+    // Register karma patterns with the registry
+    patternRegistry.registerPattern(/^karma\s+.+$/i, 'karma', 10);
+    patternRegistry.registerPattern(/^karma$/i, 'karma', 10);
+    
     // Give/take karma
     app.message(/(.+?)(-{2,}|\+{2,})\s*$/, async ({ message, context, client, say }) => {
         if (!context.matches) return;

@@ -2,11 +2,15 @@ import { App } from '@slack/bolt';
 import { GenericMessageEvent } from '@slack/types/dist/events/message';
 import { AppMentionEvent } from '@slack/types/dist/events/app';
 import { Plugin } from '../types';
+import patternRegistry from '../services/pattern-registry';
 
 const helloPlugin: Plugin = async (app: App): Promise<void> => {
     // Define patterns for greetings
     const patterns = ['^hello\\!?$', '^hey\\!?$', '^hi\\!?$', '^:wave:$'];
     const greetingRegex = new RegExp(`(${patterns.join('|')})`, 'i');
+    
+    // Register greeting patterns with the registry
+    patternRegistry.registerPattern(greetingRegex, 'hello', 10);
 
     // Helper function to get user info
     async function getUser(client: any, userId: string) {
