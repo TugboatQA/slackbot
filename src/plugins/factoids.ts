@@ -128,6 +128,9 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
     patternRegistry.registerPattern(/^forget\s+(.+)$/i, 'factoids', 1);
     patternRegistry.registerPattern(/^(YES|NO)$/i, 'factoids', 0.5); // Lower priority for YES/NO
     patternRegistry.registerPattern(/^([^?!]+)[!?]/, 'factoids', 1); // Query pattern
+    
+    // Also register patterns that can be handled in direct mentions (app_mention events)
+    patternRegistry.registerPattern(/^([^?!]+)[!?]/, 'factoids:app_mention', 1); // Query pattern for direct mentions
 
     // Add new list command
     app.message(/^!factoid:\s*list$/i, async ({ message, say, context }) => {
@@ -263,6 +266,55 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         const mention = event as AppMentionEvent;
         // Remove the bot mention, decode HTML entities, and trim
         const text = decodeHtmlEntities(mention.text.replace(/<@[^>]+>\s*/, '').trim());
+
+        // Handle query factoid pattern first (word followed by ? or !)
+        const queryMatch = text.match(/^([^?!]+)[!?]/);
+        if (queryMatch) {
+            const rawQuery = queryMatch[1].trim();
+            const index = rawQuery.toLowerCase();
+            const team = context.teamId || 'default';
+            
+            const factoids = await loadFacts(team);
+            
+            // First check if the query contains a user mention
+            const userMentionMatch = rawQuery.match(/<@([UW][A-Z0-9]+)>/);
+            let fact = null;
+            
+            if (userMentionMatch) {
+                // If query has a user mention like "<@U12345>", look up by that user ID
+                const userId = userMentionMatch[1];
+                fact = factoids.data[userId] || null;
+                
+                // If no fact found by user ID, try with the full mention format
+                if (!fact) {
+                    fact = factoids.data[`<@${userId}>`] || null;
+                }
+            } else {
+                // Try to resolve as a user if there's no direct mention
+                const user = await getUser(client, rawQuery);
+                
+                if (user) {
+                    // Try the user ID first
+                    fact = factoids.data[user.id] || null;
+                    
+                    // If no fact found, try with the full mention format
+                    if (!fact) {
+                        fact = factoids.data[`<@${user.id}>`] || null;
+                    }
+                } else {
+                    // Fall back to standard text lookup
+                    fact = factoids.data[index] || null;
+                }
+            }
+
+            if (fact) {
+                await say({
+                    text: factString(fact),
+                    thread_ts: mention.thread_ts || mention.ts
+                });
+                return;
+            }
+        }
 
         // Handle YES/NO responses to forget confirmation in mentions
         if (/^(YES|NO)$/i.test(text)) {
