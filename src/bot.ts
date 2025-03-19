@@ -53,12 +53,6 @@ const loadPlugins = async (app: App): Promise<void> => {
     console.log('Finished loading plugins');
 };
 
-// Add a basic message listener for debugging
-app.message('test', async ({ message, say }) => {
-    console.log('Received test message:', message);
-    await say('I received your test message!');
-});
-
 // Start the app and load plugins
 (async () => {
     try {
