@@ -378,11 +378,42 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
 
             try {
                 const factoids = await loadFacts(team);
-                if (factoids.data[key]) {
+                
+                // Check if we're trying to forget a user factoid first
+                let foundKey = key;
+                
+                // Try to extract a user ID if it appears to be a user mention
+                const userMentionMatch = key.match(/<@([UW][A-Z0-9]+)>/);
+                if (userMentionMatch) {
+                    // If it's a user mention format like "<@U12345>", extract the ID
+                    const userId = userMentionMatch[1];
+                    // Check if we have a factoid for just this user ID
+                    if (factoids.data[userId]) {
+                        foundKey = userId;
+                    }
+                } else {
+                    // If it's potentially just a raw user ID (U followed by alphanumerics)
+                    const userIdMatch = key.match(/^([UW][A-Z0-9]+)$/);
+                    if (userIdMatch) {
+                        const userId = userIdMatch[1];
+                        // Check if we have a factoid for this user ID
+                        if (factoids.data[userId]) {
+                            foundKey = userId;
+                        }
+                    } else {
+                        // Try to resolve as a user if there's no direct ID or mention
+                        const user = await getUser(client, key);
+                        if (user && factoids.data[user.id]) {
+                            foundKey = user.id;
+                        }
+                    }
+                }
+                
+                if (factoids.data[foundKey]) {
                     // Create a pending forget request
                     if (mention.user) {
                         pendingForgetRequests.set(mention.user, {
-                            key,
+                            key: foundKey, // Store the actual storage key
                             team,
                             channel: mention.channel,
                             thread_ts: mention.thread_ts || mention.ts,
@@ -390,9 +421,10 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
                         });
                     }
                     
-                    // Ask for confirmation
+                    // Show the factoid we're about to forget for confirmation
+                    const factToForget = factoids.data[foundKey];
                     await say({
-                        text: `Are you sure you want me to forget "${key}"? Say YES, or NO`,
+                        text: `Are you sure you want me to forget the factoid "${factToForget.key}" which is: "${factString(factToForget)}"? Say YES, or NO`,
                         thread_ts: mention.thread_ts || mention.ts
                     });
                 } else {
