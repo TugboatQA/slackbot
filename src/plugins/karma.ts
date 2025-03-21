@@ -73,8 +73,16 @@ const karmaPlugin: Plugin = async (app: App): Promise<void> => {
             index = user.id;
             displayText = user.profile?.real_name || user.real_name || text;
         } else {
-            index = text.toLowerCase();
-            displayText = text;
+            // Check if the text might be a raw user ID (starts with U or W followed by alphanumerics)
+            const userIdMatch = text.match(/^([UW][A-Z0-9]+)$/);
+            if (userIdMatch) {
+                // Preserve case for potential user IDs
+                index = text;
+                displayText = text;
+            } else {
+                index = text.toLowerCase();
+                displayText = text;
+            }
         }
 
         // Ignore long entries
@@ -136,8 +144,15 @@ const karmaPlugin: Plugin = async (app: App): Promise<void> => {
             index = user.id;
             displayText = user.profile?.real_name || user.real_name || index;
         } else {
-            index = index.toLowerCase();
-            displayText = index;
+            // Check if the text might be a raw user ID (starts with U or W followed by alphanumerics)
+            const userIdMatch = index.match(/^([UW][A-Z0-9]+)$/);
+            if (userIdMatch) {
+                // Preserve case for potential user IDs
+                displayText = index;
+            } else {
+                index = index.toLowerCase();
+                displayText = index;
+            }
         }
 
         try {
@@ -178,8 +193,15 @@ const karmaPlugin: Plugin = async (app: App): Promise<void> => {
                 index = user.id;
                 displayText = user.profile?.real_name || user.real_name || index;
             } else {
-                index = index.toLowerCase();
-                displayText = index;
+                // Check if the text might be a raw user ID (starts with U or W followed by alphanumerics)
+                const userIdMatch = index.match(/^([UW][A-Z0-9]+)$/);
+                if (userIdMatch) {
+                    // Preserve case for potential user IDs
+                    displayText = index;
+                } else {
+                    index = index.toLowerCase();
+                    displayText = index;
+                }
             }
 
             try {
