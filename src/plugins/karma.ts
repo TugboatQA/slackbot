@@ -65,9 +65,6 @@ const karmaPlugin: Plugin = async (app: App): Promise<void> => {
         const operation = context.matches[2];
         const team = context.teamId || 'default';
 
-        // Ignore long entries
-        if (text.length > 34) return;
-
         let index: string;
         let displayText: string;
         const user = await getUser(client, text);
@@ -80,6 +77,8 @@ const karmaPlugin: Plugin = async (app: App): Promise<void> => {
             displayText = text;
         }
 
+        // Ignore long entries
+        if (index.length > 34) return;
         // Check for self-karma
         if (user && await isNarcissism(msg.user, index)) {
             await say({
