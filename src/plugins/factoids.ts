@@ -170,13 +170,15 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
 
         const msg = message as GenericMessageEvent;
         const rawQuery = context.matches[1].trim();
-        const index = rawQuery.toLowerCase();
+        // Handle quotes in the query by optionally removing them
+        const cleanQuery = rawQuery.replace(/^"(.+)"$/, '$1').trim();
+        const index = cleanQuery.toLowerCase();
         const team = context.teamId || 'default';
         
         const factoids = await loadFacts(team);
         
         // First check if the query contains a user mention
-        const userMentionMatch = rawQuery.match(/<@([UW][A-Z0-9]+)>/);
+        const userMentionMatch = cleanQuery.match(/<@([UW][A-Z0-9]+)>/);
         let fact = null;
         
         if (userMentionMatch) {
@@ -190,7 +192,7 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
             }
         } else {
             // Try to resolve as a user if there's no direct mention
-            const user = await getUser(client, rawQuery);
+            const user = await getUser(client, cleanQuery);
             
             if (user) {
                 // Try the user ID first
@@ -271,13 +273,15 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         const queryMatch = text.match(/^([^?!]+)[!?]$/);
         if (queryMatch) {
             const rawQuery = queryMatch[1].trim();
-            const index = rawQuery.toLowerCase();
+            // Handle quotes in the query by optionally removing them
+            const cleanQuery = rawQuery.replace(/^"(.+)"$/, '$1').trim();
+            const index = cleanQuery.toLowerCase();
             const team = context.teamId || 'default';
             
             const factoids = await loadFacts(team);
             
             // First check if the query contains a user mention
-            const userMentionMatch = rawQuery.match(/<@([UW][A-Z0-9]+)>/);
+            const userMentionMatch = cleanQuery.match(/<@([UW][A-Z0-9]+)>/);
             let fact = null;
             
             if (userMentionMatch) {
@@ -291,7 +295,7 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
                 }
             } else {
                 // Try to resolve as a user if there's no direct mention
-                const user = await getUser(client, rawQuery);
+                const user = await getUser(client, cleanQuery);
                 
                 if (user) {
                     // Try the user ID first
