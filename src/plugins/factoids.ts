@@ -372,44 +372,56 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         const forgetMatch = text.match(/^forget\s+(.+)$/i);
         if (forgetMatch) {
             const team = context.teamId || 'default';
-            const key = forgetMatch[1]?.trim().toLowerCase();
-
-            if (!key) return;
+            // Don't convert to lowercase immediately - keep original case for potential user IDs
+            const rawKey = forgetMatch[1]?.trim();
+            
+            if (!rawKey) return;
 
             try {
                 const factoids = await loadFacts(team);
                 
                 // Check if we're trying to forget a user factoid first
-                let foundKey = key;
+                let foundKey = null;
+                let lowerKey = rawKey.toLowerCase();
                 
-                // Try to extract a user ID if it appears to be a user mention
-                const userMentionMatch = key.match(/<@([UW][A-Z0-9]+)>/);
-                if (userMentionMatch) {
-                    // If it's a user mention format like "<@U12345>", extract the ID
-                    const userId = userMentionMatch[1];
-                    // Check if we have a factoid for just this user ID
-                    if (factoids.data[userId]) {
-                        foundKey = userId;
-                    }
-                } else {
-                    // If it's potentially just a raw user ID (U followed by alphanumerics)
-                    const userIdMatch = key.match(/^([UW][A-Z0-9]+)$/);
-                    if (userIdMatch) {
-                        const userId = userIdMatch[1];
-                        // Check if we have a factoid for this user ID
+                // First check exact match (preserves case for user IDs)
+                if (factoids.data[rawKey]) {
+                    foundKey = rawKey;
+                }
+                // Then check lowercase version (for regular factoids)
+                else if (factoids.data[lowerKey]) {
+                    foundKey = lowerKey;
+                }
+                else {
+                    // Try to extract a user ID if it appears to be a user mention
+                    const userMentionMatch = rawKey.match(/<@([UW][A-Z0-9]+)>/);
+                    if (userMentionMatch) {
+                        // If it's a user mention format like "<@U12345>", extract the ID
+                        const userId = userMentionMatch[1];
+                        // Check if we have a factoid for just this user ID
                         if (factoids.data[userId]) {
                             foundKey = userId;
                         }
                     } else {
-                        // Try to resolve as a user if there's no direct ID or mention
-                        const user = await getUser(client, key);
-                        if (user && factoids.data[user.id]) {
-                            foundKey = user.id;
+                        // If it's potentially just a raw user ID (U followed by alphanumerics)
+                        const userIdMatch = rawKey.match(/^([UW][A-Z0-9]+)$/);
+                        if (userIdMatch) {
+                            const userId = userIdMatch[1];
+                            // Check if we have a factoid for this user ID
+                            if (factoids.data[userId]) {
+                                foundKey = userId;
+                            }
+                        } else {
+                            // Try to resolve as a user if there's no direct ID or mention
+                            const user = await getUser(client, rawKey);
+                            if (user && factoids.data[user.id]) {
+                                foundKey = user.id;
+                            }
                         }
                     }
                 }
                 
-                if (factoids.data[foundKey]) {
+                if (foundKey && factoids.data[foundKey]) {
                     // Create a pending forget request
                     if (mention.user) {
                         pendingForgetRequests.set(mention.user, {
@@ -429,7 +441,7 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
                     });
                 } else {
                     await say({
-                        text: `I don't know anything about "${key}"`,
+                        text: `I don't know anything about "${rawKey}"`,
                         thread_ts: mention.thread_ts || mention.ts
                     });
                 }

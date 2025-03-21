@@ -129,29 +129,31 @@ const karmaPlugin: Plugin = async (app: App): Promise<void> => {
         if (!context.matches) return;
         
         const msg = message as GenericMessageEvent;
-        let index = context.matches[1].trim();
+        let query = context.matches[1].trim();
         const team = context.teamId || 'default';
 
         // Remove trailing question mark
-        if (index.endsWith('?')) {
-            index = index.slice(0, -1);
+        if (query.endsWith('?')) {
+            query = query.slice(0, -1);
         }
 
+        let index: string;
         let displayText: string;
-        const user = await getUser(client, index);
+        const user = await getUser(client, query);
 
         if (user) {
             index = user.id;
-            displayText = user.profile?.real_name || user.real_name || index;
+            displayText = user.profile?.real_name || user.real_name || query;
         } else {
             // Check if the text might be a raw user ID (starts with U or W followed by alphanumerics)
-            const userIdMatch = index.match(/^([UW][A-Z0-9]+)$/);
+            const userIdMatch = query.match(/^([UW][A-Z0-9]+)$/);
             if (userIdMatch) {
-                // Preserve case for potential user IDs
-                displayText = index;
+                // Preserve case for potential user IDs for both index and display
+                index = query;
+                displayText = query;
             } else {
-                index = index.toLowerCase();
-                displayText = index;
+                index = query.toLowerCase();
+                displayText = query;
             }
         }
 
@@ -179,28 +181,30 @@ const karmaPlugin: Plugin = async (app: App): Promise<void> => {
         const matches = text.match(karmaQueryRegex);
         
         if (matches) {
-            let index = matches[1].trim();
+            let query = matches[1].trim();
             const team = context.teamId || 'default';
 
-            if (index.endsWith('?')) {
-                index = index.slice(0, -1);
+            if (query.endsWith('?')) {
+                query = query.slice(0, -1);
             }
 
+            let index: string;
             let displayText: string;
-            const user = await getUser(client, index);
+            const user = await getUser(client, query);
 
             if (user) {
                 index = user.id;
-                displayText = user.profile?.real_name || user.real_name || index;
+                displayText = user.profile?.real_name || user.real_name || query;
             } else {
                 // Check if the text might be a raw user ID (starts with U or W followed by alphanumerics)
-                const userIdMatch = index.match(/^([UW][A-Z0-9]+)$/);
+                const userIdMatch = query.match(/^([UW][A-Z0-9]+)$/);
                 if (userIdMatch) {
-                    // Preserve case for potential user IDs
-                    displayText = index;
+                    // Preserve case for potential user IDs for both index and display
+                    index = query;
+                    displayText = query;
                 } else {
-                    index = index.toLowerCase();
-                    displayText = index;
+                    index = query.toLowerCase();
+                    displayText = query;
                 }
             }
 
