@@ -127,10 +127,10 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
     patternRegistry.registerPattern(/^!factoid:\s*list$/i, 'factoids', 1);
     patternRegistry.registerPattern(/^forget\s+(.+)$/i, 'factoids', 1);
     patternRegistry.registerPattern(/^(YES|NO)$/i, 'factoids', 0.5); // Lower priority for YES/NO
-    patternRegistry.registerPattern(/^([^?!\s]+)[!?]$/, 'factoids', 1); // Query pattern - updated to be more specific
+    patternRegistry.registerPattern(/^([^?!]+)[!?]$/, 'factoids', 1); // Updated to allow spaces in factoid names
     
     // Also register patterns that can be handled in direct mentions (app_mention events)
-    patternRegistry.registerPattern(/^([^?!\s]+)[!?]$/, 'factoids:app_mention', 1); // Query pattern for direct mentions - updated
+    patternRegistry.registerPattern(/^([^?!]+)[!?]$/, 'factoids:app_mention', 1); // Updated to allow spaces in direct mentions
 
     // Add new list command
     app.message(/^!factoid:\s*list$/i, async ({ message, say, context }) => {
@@ -164,8 +164,8 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         }
     });
 
-    // Query a factoid - triggered by exactly one word followed by ? or !
-    app.message(/^([^?!\s]+)[!?]$/, async ({ message, context, client, say }) => {
+    // Query a factoid - triggered by a pattern followed by ? or !
+    app.message(/^([^?!]+)[!?]$/, async ({ message, context, client, say }) => {
         if (!context?.matches?.[1]) return;
 
         const msg = message as GenericMessageEvent;
@@ -267,8 +267,8 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         // Remove the bot mention, decode HTML entities, and trim
         const text = decodeHtmlEntities(mention.text.replace(/<@[^>]+>\s*/, '').trim());
 
-        // Handle query factoid pattern first (exactly one word followed by ? or !)
-        const queryMatch = text.match(/^([^?!\s]+)[!?]$/);
+        // Handle query factoid pattern first (patterns followed by ? or !)
+        const queryMatch = text.match(/^([^?!]+)[!?]$/);
         if (queryMatch) {
             const rawQuery = queryMatch[1].trim();
             const index = rawQuery.toLowerCase();
