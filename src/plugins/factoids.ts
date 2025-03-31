@@ -127,10 +127,10 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
     patternRegistry.registerPattern(/^!factoid:\s*list$/i, 'factoids', 1);
     patternRegistry.registerPattern(/^forget\s+(.+)$/i, 'factoids', 1);
     patternRegistry.registerPattern(/^(YES|NO)$/i, 'factoids', 0.5); // Lower priority for YES/NO
-    patternRegistry.registerPattern(/^(.+\S)[!?]$/, 'factoids', 1); // Allow spaces in factoid names but ensure punctuation directly follows
+    patternRegistry.registerPattern(/^([^,;:!?]+)[!?]$/, 'factoids', 1); // Match factoids with no punctuation before the ? or !
     
     // Also register patterns that can be handled in direct mentions (app_mention events)
-    patternRegistry.registerPattern(/^(.+\S)[!?]$/, 'factoids:app_mention', 1); // Allow spaces in factoid names but ensure punctuation directly follows
+    patternRegistry.registerPattern(/^([^,;:!?]+)[!?]$/, 'factoids:app_mention', 1); // Match factoids with no punctuation before the ? or !
 
     // Add new list command
     app.message(/^!factoid:\s*list$/i, async ({ message, say, context }) => {
@@ -165,7 +165,7 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
     });
 
     // Query a factoid - triggered by a pattern followed by ? or !
-    app.message(/^(.+\S)[!?]$/, async ({ message, context, client, say }) => {
+    app.message(/^([^,;:!?]+)[!?]$/, async ({ message, context, client, say }) => {
         if (!context?.matches?.[1]) return;
 
         const msg = message as GenericMessageEvent;
@@ -270,7 +270,7 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         const text = decodeHtmlEntities(mention.text.replace(/<@[^>]+>\s*/, '').trim());
 
         // Handle query factoid pattern first (patterns followed by ? or !)
-        const queryMatch = text.match(/^(.+\S)[!?]$/);
+        const queryMatch = text.match(/^([^,;:!?]+)[!?]$/);
         if (queryMatch) {
             const rawQuery = queryMatch[1].trim();
             // Handle quotes in the query by optionally removing them
