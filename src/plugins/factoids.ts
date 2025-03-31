@@ -127,10 +127,10 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
     patternRegistry.registerPattern(/^!factoid:\s*list$/i, 'factoids', 1);
     patternRegistry.registerPattern(/^forget\s+(.+)$/i, 'factoids', 1);
     patternRegistry.registerPattern(/^(YES|NO)$/i, 'factoids', 0.5); // Lower priority for YES/NO
-    patternRegistry.registerPattern(/^([^?!]+)[!?]$/, 'factoids', 1); // Updated to allow spaces in factoid names
+    patternRegistry.registerPattern(/^(\S+)[!?]$/, 'factoids', 1); // Only match when immediately followed by ? or !
     
     // Also register patterns that can be handled in direct mentions (app_mention events)
-    patternRegistry.registerPattern(/^([^?!]+)[!?]$/, 'factoids:app_mention', 1); // Updated to allow spaces in direct mentions
+    patternRegistry.registerPattern(/^(\S+)[!?]$/, 'factoids:app_mention', 1); // Only match when immediately followed by ? or !
 
     // Add new list command
     app.message(/^!factoid:\s*list$/i, async ({ message, say, context }) => {
@@ -165,7 +165,7 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
     });
 
     // Query a factoid - triggered by a pattern followed by ? or !
-    app.message(/^([^?!]+)[!?]$/, async ({ message, context, client, say }) => {
+    app.message(/^(\S+)[!?]$/, async ({ message, context, client, say }) => {
         if (!context?.matches?.[1]) return;
 
         const msg = message as GenericMessageEvent;
@@ -270,7 +270,7 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         const text = decodeHtmlEntities(mention.text.replace(/<@[^>]+>\s*/, '').trim());
 
         // Handle query factoid pattern first (patterns followed by ? or !)
-        const queryMatch = text.match(/^([^?!]+)[!?]$/);
+        const queryMatch = text.match(/^(\S+)[!?]$/);
         if (queryMatch) {
             const rawQuery = queryMatch[1].trim();
             // Handle quotes in the query by optionally removing them
