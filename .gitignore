@@ -5,3 +5,4 @@ dist/
 .working
 .cursor
 .vscode
+coverage/

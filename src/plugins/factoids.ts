@@ -174,7 +174,7 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         // Filter out patterns that should not trigger factoids:
         // 1. First check if it's a user mention with additional text (exclude these)
         // - This handles both @userID and Hey @username patterns
-        const userMentionWithTextPattern = /^(?:Hey\s+)?(?:<@[UW][A-Z0-9]+>|@\w+)(?:\s+.+|\s*,.+)[!?]$/i;
+        const userMentionWithTextPattern = /^(?:Hey\s+)?(?:<@[UW][A-Z0-9]+>|@[\w\s]+)(?:\s+.+|\s*,.+)[!?]$/i;
         if (userMentionWithTextPattern.test(text)) {
             return; // Skip user mentions with extra text
         }
@@ -185,7 +185,14 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
             return; // Skip if there's a space before ? or !
         }
         
-        // 3. Extract the factoid name (everything except the trailing ? or !)
+        // 3. Check for factoids with too many words (exclude these)
+        // This prevents processing of long sentences as factoids
+        const wordCount = text.slice(0, -1).trim().split(/\s+/).length;
+        if (wordCount > 5) { // Adjust this threshold based on expected factoid length
+            return; // Skip if too many words
+        }
+        
+        // 4. Extract the factoid name (everything except the trailing ? or !)
         const rawQuery = text.slice(0, -1).trim();
         
         // Handle quotes in the query by optionally removing them
