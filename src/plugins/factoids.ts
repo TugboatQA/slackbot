@@ -171,24 +171,17 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         const msg = message as GenericMessageEvent;
         const text = msg.text || '';
         
-        // Debug logging
-        console.log('DEBUG factoids - Message received:', JSON.stringify({
-            text: text,
-            matches: context.matches
-        }));
-        
         // Filter out patterns that should not trigger factoids:
         // 1. First check if it's a user mention with additional text (exclude these)
-        const userMentionWithTextPattern = /^<@[UW][A-Z0-9]+>(?:\s+.+|\s*,.+)[!?]$/;
+        // - This handles both @userID and Hey @username patterns
+        const userMentionWithTextPattern = /^(?:Hey\s+)?(?:<@[UW][A-Z0-9]+>|@\w+)(?:\s+.+|\s*,.+)[!?]$/i;
         if (userMentionWithTextPattern.test(text)) {
-            console.log('DEBUG factoids - Skipping user mention with additional text:', text);
             return; // Skip user mentions with extra text
         }
         
         // 2. Check if it's a regular factoid with a space before the punctuation (exclude these)
         const spaceBeforePunctuationPattern = /\s[!?]$/;
         if (spaceBeforePunctuationPattern.test(text)) {
-            console.log('DEBUG factoids - Skipping text with space before punctuation:', text);
             return; // Skip if there's a space before ? or !
         }
         
@@ -199,12 +192,6 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         const cleanQuery = rawQuery.replace(/^"(.+)"$/, '$1').trim();
         const index = cleanQuery.toLowerCase();
         const team = context.teamId || 'default';
-        
-        console.log('DEBUG factoids - Processing factoid query:', {
-            rawQuery,
-            cleanQuery,
-            index
-        });
         
         const factoids = await loadFacts(team);
         
@@ -305,16 +292,15 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         if (text.endsWith('?') || text.endsWith('!')) {
             // Filter out patterns that should not trigger factoids:
             // 1. First check if it's a user mention with additional text (exclude these)
-            const userMentionWithTextPattern = /^<@[UW][A-Z0-9]+>(?:\s+.+|\s*,.+)[!?]$/;
+            // - This handles both @userID and Hey @username patterns
+            const userMentionWithTextPattern = /^(?:Hey\s+)?(?:<@[UW][A-Z0-9]+>|@\w+)(?:\s+.+|\s*,.+)[!?]$/i;
             if (userMentionWithTextPattern.test(text)) {
-                console.log('DEBUG factoids - Skipping user mention with additional text (in app_mention):', text);
                 return; // Skip user mentions with extra text
             }
             
             // 2. Check if it's a regular factoid with a space before the punctuation (exclude these)
             const spaceBeforePunctuationPattern = /\s[!?]$/;
             if (spaceBeforePunctuationPattern.test(text)) {
-                console.log('DEBUG factoids - Skipping text with space before punctuation (in app_mention):', text);
                 return; // Skip if there's a space before ? or !
             }
             
@@ -325,12 +311,6 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
             const cleanQuery = rawQuery.replace(/^"(.+)"$/, '$1').trim();
             const index = cleanQuery.toLowerCase();
             const team = context.teamId || 'default';
-            
-            console.log('DEBUG factoids - Processing factoid query (in app_mention):', {
-                rawQuery,
-                cleanQuery,
-                index
-            });
             
             const factoids = await loadFacts(team);
             
