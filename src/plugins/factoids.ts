@@ -127,10 +127,12 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
     patternRegistry.registerPattern(/^!factoid:\s*list$/i, 'factoids', 1);
     patternRegistry.registerPattern(/^forget\s+(.+)$/i, 'factoids', 1);
     patternRegistry.registerPattern(/^(YES|NO)$/i, 'factoids', 0.5); // Lower priority for YES/NO
-    patternRegistry.registerPattern(/^([^,;:!?]+)[!?]$/, 'factoids', 1); // Match factoids with no punctuation before the ? or !
+    
+    // Two separate patterns for factoids - both lower priority than other commands
+    patternRegistry.registerPattern(/^.+[!?]$/, 'factoids', 0.25); // Any text ending with ? or !
     
     // Also register patterns that can be handled in direct mentions (app_mention events)
-    patternRegistry.registerPattern(/^([^,;:!?]+)[!?]$/, 'factoids:app_mention', 1); // Match factoids with no punctuation before the ? or !
+    patternRegistry.registerPattern(/^.+[!?]$/, 'factoids:app_mention', 0.25);
 
     // Add new list command
     app.message(/^!factoid:\s*list$/i, async ({ message, say, context }) => {
@@ -165,15 +167,44 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
     });
 
     // Query a factoid - triggered by a pattern followed by ? or !
-    app.message(/^([^,;:!?]+)[!?]$/, async ({ message, context, client, say }) => {
-        if (!context?.matches?.[1]) return;
-
+    app.message(/^.+[!?]$/, async ({ message, context, client, say }) => {
         const msg = message as GenericMessageEvent;
-        const rawQuery = context.matches[1].trim();
+        const text = msg.text || '';
+        
+        // Debug logging
+        console.log('DEBUG factoids - Message received:', JSON.stringify({
+            text: text,
+            matches: context.matches
+        }));
+        
+        // Filter out patterns that should not trigger factoids:
+        // 1. First check if it's a user mention with additional text (exclude these)
+        const userMentionWithTextPattern = /^<@[UW][A-Z0-9]+>(?:\s+.+|\s*,.+)[!?]$/;
+        if (userMentionWithTextPattern.test(text)) {
+            console.log('DEBUG factoids - Skipping user mention with additional text:', text);
+            return; // Skip user mentions with extra text
+        }
+        
+        // 2. Check if it's a regular factoid with a space before the punctuation (exclude these)
+        const spaceBeforePunctuationPattern = /\s[!?]$/;
+        if (spaceBeforePunctuationPattern.test(text)) {
+            console.log('DEBUG factoids - Skipping text with space before punctuation:', text);
+            return; // Skip if there's a space before ? or !
+        }
+        
+        // 3. Extract the factoid name (everything except the trailing ? or !)
+        const rawQuery = text.slice(0, -1).trim();
+        
         // Handle quotes in the query by optionally removing them
         const cleanQuery = rawQuery.replace(/^"(.+)"$/, '$1').trim();
         const index = cleanQuery.toLowerCase();
         const team = context.teamId || 'default';
+        
+        console.log('DEBUG factoids - Processing factoid query:', {
+            rawQuery,
+            cleanQuery,
+            index
+        });
         
         const factoids = await loadFacts(team);
         
@@ -270,13 +301,36 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         const text = decodeHtmlEntities(mention.text.replace(/<@[^>]+>\s*/, '').trim());
 
         // Handle query factoid pattern first (patterns followed by ? or !)
-        const queryMatch = text.match(/^([^,;:!?]+)[!?]$/);
-        if (queryMatch) {
-            const rawQuery = queryMatch[1].trim();
+        // Check if it's ending with ? or !
+        if (text.endsWith('?') || text.endsWith('!')) {
+            // Filter out patterns that should not trigger factoids:
+            // 1. First check if it's a user mention with additional text (exclude these)
+            const userMentionWithTextPattern = /^<@[UW][A-Z0-9]+>(?:\s+.+|\s*,.+)[!?]$/;
+            if (userMentionWithTextPattern.test(text)) {
+                console.log('DEBUG factoids - Skipping user mention with additional text (in app_mention):', text);
+                return; // Skip user mentions with extra text
+            }
+            
+            // 2. Check if it's a regular factoid with a space before the punctuation (exclude these)
+            const spaceBeforePunctuationPattern = /\s[!?]$/;
+            if (spaceBeforePunctuationPattern.test(text)) {
+                console.log('DEBUG factoids - Skipping text with space before punctuation (in app_mention):', text);
+                return; // Skip if there's a space before ? or !
+            }
+            
+            // 3. Extract the factoid name (everything except the trailing ? or !)
+            const rawQuery = text.slice(0, -1).trim();
+            
             // Handle quotes in the query by optionally removing them
             const cleanQuery = rawQuery.replace(/^"(.+)"$/, '$1').trim();
             const index = cleanQuery.toLowerCase();
             const team = context.teamId || 'default';
+            
+            console.log('DEBUG factoids - Processing factoid query (in app_mention):', {
+                rawQuery,
+                cleanQuery,
+                index
+            });
             
             const factoids = await loadFacts(team);
             
@@ -595,26 +649,26 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
                             factoids.data[storeKey].value = factoids.data[storeKey].value.concat(fact.value);
                             await saveFacts(team, factoids);
                             await respond({
-                                text: `✅ Appended! Updated factoid is now:\n"${factString(factoids.data[storeKey])}"`,
+                                text: `✅ Appended! New factoid is:\n"${factString(fact)}"`,
                                 replace_original: true
                             });
-                        } else {
+                        } else if (choice === 'cancel') {
                             await respond({
-                                text: '❌ Cancelled - keeping the existing factoid.',
+                                text: 'Operation cancelled.',
                                 replace_original: true
                             });
                         }
                     } catch (err) {
+                        console.error('Error handling button action:', err);
                         await respond({
-                            text: `Error updating factoid: ${err}`,
-                            replace_original: false
+                            text: 'There was a problem handling the button action.',
+                            replace_original: true
                         });
                     }
                 });
             }
-            return;
         }
     });
 };
 
-export default factoidsPlugin; 
+export default factoidsPlugin;
