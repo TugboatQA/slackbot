@@ -34,8 +34,9 @@ These patterns should NOT trigger a factoid lookup:
 12. `@username are you available?` - Username mention with additional text
 13. `Hey @username are you here?` - Username mention with any prefix and additional text
 14. `Hey @Jerad Bitner are you here?` - Full name mention with any prefix and additional text
-15. `factoid with spaces and then some extra words?` - Factoid with too many words
-16. `factoid with spaces and then some extra words!` - Factoid with too many words
+15. `@David Burns: should I work on https://github.com/Lullabot/composer-checks/issues as part of Drainpipe?` - Username mention with colon and additional text
+16. `factoid with spaces and then some extra words?` - Factoid with too many words
+17. `factoid with spaces and then some extra words!` - Factoid with too many words
 
 ## Implementation Notes
 

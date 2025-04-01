@@ -44,6 +44,7 @@ const shouldNotMatchPatterns = [
     '@username are you available?',
     'Hey @username are you here?',
     'Hey @Jerad Bitner are you here?',
+    '@David Burns: should I work on https://github.com/Lullabot/composer-checks/issues as part of Drainpipe?',
     'factoid with spaces and then some extra words?',
     'factoid with spaces and then some extra words!'
 ];
@@ -96,7 +97,7 @@ describe('Factoids Plugin', () => {
             // to handle all the test cases
             
             // 1. First check if it's a user mention with additional text (exclude these)
-            const userMentionWithTextPattern = /^(?:Hey\s+)?(?:<@[UW][A-Z0-9]+>|@[\w\s]+)(?:\s+.+|\s*,.+)[!?]$/i;
+            const userMentionWithTextPattern = /^(?:Hey\s+)?(?:<@[UW][A-Z0-9]+>|@[\w\s]+)(?:\s+.+|\s*,.+|\s*:.+)[!?]$/i;
             if (userMentionWithTextPattern.test(text)) {
                 console.log(`Pattern "${text}" matches userMentionWithTextPattern - REJECT`);
                 return false; // Skip user mentions with extra text

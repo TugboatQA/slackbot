@@ -174,7 +174,7 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         // Filter out patterns that should not trigger factoids:
         // 1. First check if it's a user mention with additional text (exclude these)
         // - This handles both @userID and Hey @username patterns
-        const userMentionWithTextPattern = /^(?:Hey\s+)?(?:<@[UW][A-Z0-9]+>|@[\w\s]+)(?:\s+.+|\s*,.+)[!?]$/i;
+        const userMentionWithTextPattern = /^(?:Hey\s+)?(?:<@[UW][A-Z0-9]+>|@[\w\s]+)(?:\s+.+|\s*,.+|\s*:.+)[!?]$/i;
         if (userMentionWithTextPattern.test(text)) {
             return; // Skip user mentions with extra text
         }
