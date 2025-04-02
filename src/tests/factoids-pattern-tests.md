@@ -35,8 +35,9 @@ These patterns should NOT trigger a factoid lookup:
 13. `Hey @username are you here?` - Username mention with any prefix and additional text
 14. `Hey @Jerad Bitner are you here?` - Full name mention with any prefix and additional text
 15. `@David Burns: should I work on https://github.com/Lullabot/composer-checks/issues as part of Drainpipe?` - Username mention with colon and additional text
-16. `factoid with spaces and then some extra words?` - Factoid with too many words
-17. `factoid with spaces and then some extra words!` - Factoid with too many words
+16. `what is the question @sethlbrown?` - Factoid with leading text
+17. `factoid with spaces and then some extra words?` - Factoid with too many words
+18. `factoid with spaces and then some extra words!` - Factoid with too many words
 
 ## Implementation Notes
 
@@ -47,10 +48,11 @@ These patterns should NOT trigger a factoid lookup:
   - `@Full Name` - Full name format (including spaces)
 - The maximum word count for a valid factoid is 5 words
 - Patterns are rejected based on these rules:
-  1. User mentions followed by additional text or anything in front of them are rejected
-  2. Messages with a space before the final punctuation mark are rejected
-  3. Messages with more than 5 words are rejected as too complex
-  4. Messages must end with either ? or ! to be considered
+  1. Messages must start with the factoid query - no leading text is allowed
+  2. User mentions followed by additional text or anything in front of them are rejected
+  3. Messages with a space before the final punctuation mark are rejected
+  4. Messages with more than 5 words are rejected as too complex
+  5. Messages must end with either ? or ! to be considered
 
 ## Adding New Test Patterns
 

@@ -45,6 +45,7 @@ const shouldNotMatchPatterns = [
     'Hey @username are you here?',
     'Hey @Jerad Bitner are you here?',
     '@David Burns: should I work on https://github.com/Lullabot/composer-checks/issues as part of Drainpipe?',
+    'what is the question @sethlbrown?',
     'factoid with spaces and then some extra words?',
     'factoid with spaces and then some extra words!'
 ];
@@ -95,6 +96,13 @@ describe('Factoids Plugin', () => {
         const shouldTriggerFactoid = (text: string): boolean => {
             // These conditions are copied from the factoids.ts file but enhanced
             // to handle all the test cases
+            
+            // 0. Check if there's any text before a potential factoid (exclude these)
+            const hasLeadingText = /^.+\s+(?:<@[UW][A-Z0-9]+>|@[\w\s]+|[^@])[!?]$/i;
+            if (hasLeadingText.test(text)) {
+                console.log(`Pattern "${text}" has leading text - REJECT`);
+                return false;
+            }
             
             // 1. First check if it's a user mention with additional text (exclude these)
             const userMentionWithTextPattern = /^(?:Hey\s+)?(?:<@[UW][A-Z0-9]+>|@[\w\s]+)(?:\s+.+|\s*,.+|\s*:.+)[!?]$/i;

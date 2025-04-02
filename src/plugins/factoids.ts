@@ -172,6 +172,12 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         const text = msg.text || '';
         
         // Filter out patterns that should not trigger factoids:
+        // 0. Check if there's any text before a potential factoid (exclude these)
+        const hasLeadingText = /^.+\s+(?:<@[UW][A-Z0-9]+>|@[\w\s]+|[^@])[!?]$/i;
+        if (hasLeadingText.test(text)) {
+            return; // Skip if there's text before the factoid
+        }
+        
         // 1. First check if it's a user mention with additional text (exclude these)
         // - This handles both @userID and Hey @username patterns
         const userMentionWithTextPattern = /^(?:Hey\s+)?(?:<@[UW][A-Z0-9]+>|@[\w\s]+)(?:\s+.+|\s*,.+|\s*:.+)[!?]$/i;
@@ -298,6 +304,12 @@ const factoidsPlugin: Plugin = async (app: App): Promise<void> => {
         // Check if it's ending with ? or !
         if (text.endsWith('?') || text.endsWith('!')) {
             // Filter out patterns that should not trigger factoids:
+            // 0. Check if there's any text before a potential factoid (exclude these)
+            const hasLeadingText = /^.+\s+(?:<@[UW][A-Z0-9]+>|@[\w\s]+|[^@])[!?]$/i;
+            if (hasLeadingText.test(text)) {
+                return; // Skip if there's text before the factoid
+            }
+            
             // 1. First check if it's a user mention with additional text (exclude these)
             // - This handles both @userID and Hey @username patterns
             const userMentionWithTextPattern = /^(?:Hey\s+)?(?:<@[UW][A-Z0-9]+>|@\w+)(?:\s+.+|\s*,.+)[!?]$/i;
