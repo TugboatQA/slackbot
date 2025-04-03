@@ -90,8 +90,7 @@ const karmaPlugin: Plugin = async (app: App): Promise<void> => {
         // Check for self-karma
         if (user && await isNarcissism(msg.user, index)) {
             await say({
-                text: `Nice try <@${msg.user}>, but no...`,
-                thread_ts: msg.thread_ts || msg.ts
+                text: `Nice try <@${msg.user}>, but no...`
             });
             return;
         }
@@ -109,14 +108,12 @@ const karmaPlugin: Plugin = async (app: App): Promise<void> => {
 
             await saveKarma(team, karma);
             await say({
-                text: `${displayText} has karma of ${karma.data[index]}`,
-                thread_ts: msg.thread_ts || msg.ts
+                text: `${displayText} has karma of ${karma.data[index]}`
             });
         } catch (err) {
             console.error('Failed to update karma:', err);
             await say({
-                text: `Failed to update karma for ${displayText}`,
-                thread_ts: msg.thread_ts || msg.ts
+                text: `Failed to update karma for ${displayText}`
             });
         }
     });
@@ -162,14 +159,12 @@ const karmaPlugin: Plugin = async (app: App): Promise<void> => {
             const karmaValue = karma.data[index] || 0;
 
             await say({
-                text: `${displayText} has karma ${karmaValue}`,
-                thread_ts: msg.thread_ts || msg.ts
+                text: `${displayText} has karma ${karmaValue}`
             });
         } catch (err) {
             console.error('Failed to get karma:', err);
             await say({
-                text: `Failed to get karma for ${displayText}`,
-                thread_ts: msg.thread_ts || msg.ts
+                text: `Failed to get karma for ${displayText}`
             });
         }
     });
@@ -213,14 +208,12 @@ const karmaPlugin: Plugin = async (app: App): Promise<void> => {
                 const karmaValue = karma.data[index] || 0;
 
                 await say({
-                    text: `${displayText} has karma ${karmaValue}`,
-                    thread_ts: mention.thread_ts || mention.ts
+                    text: `${displayText} has karma ${karmaValue}`
                 });
             } catch (err) {
                 console.error('Failed to get karma:', err);
                 await say({
-                    text: `Failed to get karma for ${displayText}`,
-                    thread_ts: mention.thread_ts || mention.ts
+                    text: `Failed to get karma for ${displayText}`
                 });
             }
         }
