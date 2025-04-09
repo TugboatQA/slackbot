@@ -1,40 +1,33 @@
 {
-    "name": "slackbot",
+    "name": "botkit-lullabot",
     "version": "1.0.0",
-    "description": "Slack bot for Lullabot",
-    "main": "index.js",
-    "author": {
-        "name": "Lullabot",
-        "email": "developers@lullabot.com"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/TugboatQA/tugboat-slackbot.git"
-    },
-    "license": "MIT",
+    "description": "",
+    "main": "dist/bot.js",
     "scripts": {
-        "start": "node ./index.js",
-        "test": "eslint --max-warnings=0 ."
+        "start": "NODE_ENV=production node dist/bot.js",
+        "dev": "NODE_ENV=development nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/bot.ts",
+        "build": "tsc",
+        "watch": "tsc -w",
+        "clean": "rimraf dist",
+        "prebuild": "npm run clean",
+        "prestart": "npm run build",
+        "test": "jest --forceExit"
     },
     "dependencies": {
-        "botkit": "^0.6.9",
+        "@slack/bolt": "^4.1.1",
+        "@slack/types": "^2.14.0",
         "datejs": "^1.0.0-rc3",
-        "dotenv-defaults": "^5.0.2"
+        "dotenv": "^16.0.0"
     },
     "devDependencies": {
-        "eslint": "^4.16.0",
-        "eslint-config-airbnb-base": "^12.1.0",
-        "eslint-config-prettier": "^2.9.0",
-        "eslint-plugin-import": "^2.8.0",
-        "eslint-plugin-json": "^1.2.0",
-        "eslint-plugin-prettier": "^2.5.0",
-        "fast-csv": "^2.4.1",
-        "prettier": "^1.10.2"
-    },
-    "prettier": {
-        "singleQuote": true,
-        "tabWidth": 4,
-        "trailingComma": "es5",
-        "printWidth": 120
+        "@types/datejs": "^0.0.36",
+        "@types/jest": "^29.5.0",
+        "@types/node": "^22.0.0",
+        "jest": "^29.5.0",
+        "nodemon": "^3.1.7",
+        "rimraf": "^6.0.0",
+        "ts-jest": "^29.1.0",
+        "ts-node": "^10.9.0",
+        "typescript": "^5.0.0"
     }
 }
