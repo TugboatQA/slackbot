@@ -1,7 +1,7 @@
 {
     "display_information": {
-        "name": "Lullabot",
-        "description": "This is a little bot to help Lullabots at Lullabot.",
+        "name": "Tugbot",
+        "description": "This is a little bot to help folks at Tugboat.",
         "background_color": "#000000"
     },
     "features": {
@@ -11,11 +11,11 @@
             "messages_tab_read_only_enabled": false
         },
         "bot_user": {
-            "display_name": "Lullabot",
+            "display_name": "Tugbot",
             "always_online": true
         },
         "assistant_view": {
-            "assistant_description": "This is a little bot to help with knowledge sharing and fun at Lullabot.",
+            "assistant_description": "This is a little bot to help with knowledge sharing and fun at Tugboat.",
             "suggested_prompts": []
         }
     },
